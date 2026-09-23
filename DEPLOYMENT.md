@@ -31,6 +31,10 @@ A dedicated TaskContext key was added without replacing sibling deployment keys.
 
 The restricted SSH path successfully performed the initial controlled switch from the pinned image to `latest`, retaining one CPU, 512 MiB, data volume, environment and replica. ONCE automatic updates remain disabled. The wrapper pulls first, gracefully stops the sole TaskContext container, then updates. Reinstall `deploy/install.py` after any scaffold convergence that regenerates authorized keys. Never print Docker labels or environment metadata.
 
+The first full CD run [35839474799](https://github.com/pocketcontext/taskcontext/actions/runs/35839474799) passed tests, restore checks, both architecture builds, publication, SSH deployment, and public health verification. Live inspection confirmed application revision `3fd57a8`, one running TaskContext container using `latest`, preserved resource limits, and disabled automatic updates. Sibling application health checks passed.
+
+The run also covers leading-hyphen operator passwords: the entrypoint separates positional credentials with `--`, and smoke/restore fixtures deliberately exercise that case.
+
 ## Future updates
 
 Normal releases use CD. For manual rollback, pull the recorded immutable image before stopping anything. Gracefully stop the exact TaskContext container and verify clean exit before `once update tasks.pocketcontext.com --image <digest> --auto-update=false --cpus 1 --memory 512`. ONCE v0.3.3 otherwise overlaps database/Litestream writers. Keep credentials and the replica prefix unchanged. Never run a restored replica beside an active writer. Record the released digest and health verification here after each deployment.
