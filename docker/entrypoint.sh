@@ -52,6 +52,13 @@ serve() {
 	exec "$SERVER" "$@"
 }
 
+# Validate before restore, provisioning, or the Litestream child starts the server.
+if [ -n "${TASKCONTEXT_GOOGLE_CLIENT_ID:-}" ] && [ -z "${TASKCONTEXT_GOOGLE_CLIENT_SECRET:-}" ]; then
+	die "TASKCONTEXT_GOOGLE_CLIENT_ID requires TASKCONTEXT_GOOGLE_CLIENT_SECRET"
+elif [ -n "${TASKCONTEXT_GOOGLE_CLIENT_SECRET:-}" ] && [ -z "${TASKCONTEXT_GOOGLE_CLIENT_ID:-}" ]; then
+	die "TASKCONTEXT_GOOGLE_CLIENT_SECRET requires TASKCONTEXT_GOOGLE_CLIENT_ID"
+fi
+
 if [ "${1:-}" = serve ]; then
 	serve
 fi

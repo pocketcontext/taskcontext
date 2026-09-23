@@ -1,5 +1,13 @@
 # Workflows
 
+## Authentication
+
+Set `TASKCONTEXT_URL` and `TASKCONTEXT_USER_EMAIL` outside source control. For Google OAuth, run `tc.py login --google` and have the human open the printed URL. The operator must configure Google's Internal audience, register `http://127.0.0.1:8765/callback`, enable the provider, and provision the matching user email. The Google client secret stays on the TaskContext server.
+
+For a remote SSH client, establish `ssh -L 8765:127.0.0.1:8765 user@ssh-host` from the laptop first. Run the login command on the remote host and open the URL in the laptop browser. The callback reaches the remote loopback listener through the tunnel. Local client use needs no tunnel. Login waits 180 seconds by default (`--timeout` accepts 1–600 seconds). A different `--port` requires a matching registered Google redirect URI and SSH forwarding port. Login validates state, uses PKCE, and verifies the returned email; a different account must not replace the configured identity.
+
+For Google sessions, authenticated commands refresh a still-valid cached PocketBase token after five minutes or when it is within 60 seconds of expiry, then save the replacement. `whoami` always refreshes. The default lifetime is one day, with no background refresh. An expired or rejected OAuth session requires another interactive login. Do not repeatedly retry business writes to repair authentication. Password login remains available with `TASKCONTEXT_USER_PASSWORD`; do not search for it if absent. `logout` removes the local cache, not other copies of the session. Google consent revocation or account suspension does not automatically revoke an existing PocketBase token; contact the operator to revoke TaskContext access too.
+
 ## Triage and assignment
 
 Resolve the project by key, and search for existing issues before recording a new report. Read matching issues and ask for clarification only when ambiguity affects the requested change. Resolve assignee IDs through `user_directory`; a name is not necessarily unique. Put supplied facts in the description, distinguish unknowns, and avoid inventing acceptance criteria. Create an issue with its project and title; set type, priority, and assignee when the request establishes them.

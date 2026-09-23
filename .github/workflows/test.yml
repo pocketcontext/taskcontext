@@ -41,5 +41,9 @@ jobs:
         run: python3 taskcontext/tests/integration.py --binary pocketcontext/bin/pocketcontext
       - name: Test skill
         run: python3 taskcontext/tests/skill.py --binary pocketcontext/bin/pocketcontext
+      - name: Test OAuth client
+        run: python3 taskcontext/tests/oauth.py
+      - name: Test OAuth exchange and identity
+        run: python3 taskcontext/tests/oauth_integration.py --binary pocketcontext/bin/pocketcontext
       - name: Test deployment hooks
         run: python3 taskcontext/tests/deploy.py --binary pocketcontext/bin/pocketcontext

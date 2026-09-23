@@ -246,6 +246,8 @@ def once_env(extra=None):
         'SMTP_ADDRESS': 'smtp.example.test', 'SMTP_PORT': '587', 'SMTP_USERNAME': 'image-check', 'SMTP_PASSWORD': secret(secrets.token_urlsafe(24)),
         'MAILER_FROM_ADDRESS': 'Info <info@notifications.example.test>',
         'TASKCONTEXT_SUPERUSER_EMAIL': 'operator@example.test', 'TASKCONTEXT_SUPERUSER_PASSWORD': secret('-' + secrets.token_urlsafe(24)),
+        'TASKCONTEXT_GOOGLE_CLIENT_ID': 'image-test.apps.googleusercontent.com',
+        'TASKCONTEXT_GOOGLE_CLIENT_SECRET': secret(secrets.token_urlsafe(24)),
     }
     env.update(extra or {})
     return env
@@ -269,6 +271,12 @@ def smoke(image, tmp, run_id):
     check(settings['smtp']['enabled'] is True and settings['smtp']['host'] == env['SMTP_ADDRESS'], 'SMTP is enabled with SMTP_ADDRESS as host')
     check(settings['rateLimits']['enabled'] is True, "rate limits are enabled by the image's default TASKCONTEXT_RATE_LIMITS=true")
     check(env['SMTP_PASSWORD'] not in json.dumps(settings), 'the settings API does not return the SMTP password')
+
+    status, _, collection = http('GET', base + '/api/collections/users', token=token)
+    check(status == 200 and collection['oauth2']['enabled'], 'Google OAuth is enabled after migrations')
+    check(collection['oauth2']['providers'][0]['clientId'] == env['TASKCONTEXT_GOOGLE_CLIENT_ID'], 'Google client ID matches the environment')
+    check(env['TASKCONTEXT_GOOGLE_CLIENT_SECRET'] not in json.dumps(collection), 'the collection API does not return the Google secret')
+    check(collection['createRule'] is None and collection['passwordAuth']['enabled'], 'operator-only provisioning and password login are preserved')
 
     step('CORS: only BASE_URL is an allowed origin')
     _, reply, _ = http('GET', base + '/api/health', headers={'Origin': env['BASE_URL']})
@@ -323,6 +331,13 @@ def config(image, tmp, run_id):
     expect_startup_error(image, 'LITESTREAM_DISABLED=1 is not exactly "true"', {'LITESTREAM_DISABLED': '1'}, required + ["exactly 'true'"])
     expect_startup_error(image, 'a superuser email without a password', {'LITESTREAM_DISABLED': 'true', 'TASKCONTEXT_SUPERUSER_EMAIL': 'operator@example.test'},
                          ['TASKCONTEXT_SUPERUSER_PASSWORD'])
+
+    expect_startup_error(image, 'a Google client ID without a secret',
+                         {'LITESTREAM_DISABLED': 'true', 'TASKCONTEXT_GOOGLE_CLIENT_ID': 'image-test.apps.googleusercontent.com'},
+                         ['TASKCONTEXT_GOOGLE_CLIENT_SECRET'])
+    expect_startup_error(image, 'a Google secret without a client ID',
+                         {'LITESTREAM_DISABLED': 'true', 'TASKCONTEXT_GOOGLE_CLIENT_SECRET': secret(secrets.token_urlsafe(24))},
+                         ['TASKCONTEXT_GOOGLE_CLIENT_ID'])
 
     step('a replica that cannot be reached: Litestream keeps retrying or fails, and the server never starts on an empty database')
     name = f'tc-config-{run_id}'

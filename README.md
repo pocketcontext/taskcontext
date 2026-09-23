@@ -39,7 +39,7 @@ Install `skills/taskcontext/` into your coding agent's skills directory, or use 
 npx skills add pocketcontext/taskcontext --skill taskcontext
 ```
 
-The portable client requires Python 3 and these environment variables, supplied outside source control:
+The portable client requires Python 3, `TASKCONTEXT_URL`, and `TASKCONTEXT_USER_EMAIL`, supplied outside source control. For password authentication, also supply `TASKCONTEXT_USER_PASSWORD`:
 
 ```sh
 export TASKCONTEXT_URL=https://tasks.pocketcontext.com
@@ -49,7 +49,36 @@ python3 skills/taskcontext/scripts/tc.py whoami
 python3 skills/taskcontext/scripts/tc.py check
 ```
 
+For Google authentication, omit the password and follow the Google Workspace setup below.
+
 Use HTTPS except on localhost. The client uses the Python standard library, keeps its token cache private, and never prints credentials. `logout` removes the cached token. `check` compares the live SQL schema with the bundled snapshot. See [schema](skills/taskcontext/references/schema.md), [workflows](skills/taskcontext/references/workflows.md), and [examples](skills/taskcontext/references/examples.md).
+
+## Google Workspace authentication
+
+An operator configures Google once before users sign in:
+
+1. In a Google Cloud project belonging to your Workspace organization, configure Google Auth Platform branding and select the **Internal** audience. Use only the basic identity scopes `openid`, `email`, and `profile`.
+2. Create an OAuth client of type **Web application**, with the exact authorized redirect URI `http://127.0.0.1:8765/callback`. See [Google OAuth setup](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred).
+3. Supply `TASKCONTEXT_GOOGLE_CLIENT_ID` and `TASKCONTEXT_GOOGLE_CLIENT_SECRET` to the TaskContext server and restart it. Set both together. After PocketBase system bootstrap creates `users`, the startup hook enables Google. TaskContext migrations preserve those OAuth options. The hook preserves other providers and access rules and updates credentials only when changed. Leaving both absent preserves stored settings; it does not disable Google. The secret belongs only on the server, never in the skill environment.
+4. Provision each approved user with their Workspace email using the operator procedure above. Google sign-in associates with that existing email. Public account creation remains disabled; every admitted user can access the shared workspace. Password authentication remains enabled during rollout. PocketBase may reset the existing password when first linking an unverified local account to a verified Google identity; operators should verify provisioned identities before linking if password continuity is required.
+
+For a client running in an SSH session, open the session with forwarding from your laptop:
+
+```sh
+ssh -L 8765:127.0.0.1:8765 user@ssh-host
+```
+
+Then, on the SSH host:
+
+```sh
+export TASKCONTEXT_URL=https://tasks.pocketcontext.com
+export TASKCONTEXT_USER_EMAIL=member@example.com
+python3 skills/taskcontext/scripts/tc.py login --google
+```
+
+Open the printed authorization URL in your laptop's browser and choose the configured Workspace account. The callback travels through SSH to the client's loopback listener; the client checks state, uses PKCE, verifies the returned email, and closes the listener after completion or timeout. No browser is required on the SSH host. When running locally, the same login command works without a tunnel. This uses a direct callback rather than PocketBase's realtime OAuth flow. Login waits up to 180 seconds by default; `--timeout` accepts 1–600 seconds. To use `--port` with another port, register the corresponding redirect URI with Google and change the SSH forwarding port too.
+
+The client privately caches the PocketBase session token, not Google access or refresh tokens. For Google sessions, authenticated commands refresh a still-valid PocketBase token after five minutes or when it is within 60 seconds of expiry, and save its replacement. `whoami` always requests a refresh. Tokens last one day; after expiry or invalidation, run `login --google` again. There is no background refresh. `logout` removes the local cache; it does not invalidate copies elsewhere. Revoking Google consent or suspending a Workspace account does not automatically revoke an already issued PocketBase session. Operators must also revoke TaskContext access, for example by invalidating the user's tokens through a password change. Superuser dashboard authentication remains separate.
 
 ## Data and write rules
 
@@ -75,6 +104,7 @@ The Dockerfile pins PocketContext, base images, and Litestream. It serves port 8
 | --- | --- |
 | `BASE_URL` | Public application origin; also the allowed browser origin. ONCE supplies it. |
 | `TASKCONTEXT_SUPERUSER_EMAIL`, `TASKCONTEXT_SUPERUSER_PASSWORD` | Operator account upserted on container startup; set both together. |
+| `TASKCONTEXT_GOOGLE_CLIENT_ID`, `TASKCONTEXT_GOOGLE_CLIENT_SECRET` | Optional Google OAuth provider credentials; set both together. Absent values preserve stored provider configuration. |
 | `TASKCONTEXT_TRUSTED_PROXY_HEADER` | Trusted proxy client-address header; deployment uses `X-Forwarded-For`. |
 | `TASKCONTEXT_RATE_LIMITS` | `true` in the image; `false` disables API limits. |
 | `LITESTREAM_BUCKET`, `LITESTREAM_PATH` | Private backup bucket and application-specific prefix. |
@@ -84,7 +114,7 @@ The Dockerfile pins PocketContext, base images, and Litestream. It serves port 8
 | `LITESTREAM_DISABLED` | Exactly `true` disables replication for disposable local tests. |
 | `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAILER_FROM_ADDRESS` | Optional PocketBase mail settings supplied by ONCE. |
 
-An empty volume restores the existing replica before the server starts. Restore errors stop startup. The backup includes account hashes and any stored SMTP credentials, so the bucket must remain private. No file attachments are implemented.
+An empty volume restores the existing replica before the server starts. Restore errors stop startup. The backup includes account hashes and any stored SMTP or OAuth provider credentials, so the bucket must remain private. No file attachments are implemented.
 
 Production deployment uses the existing ONCE host and private `taskcontext-backup` bucket, prefix `once-pocketcontext/taskcontext`. Configuration is recorded in the sibling unversioned `once-pocketcontext/` scaffold; secrets belong in its `.envrc.private`. A public repository does not guarantee a public GHCR package: verify anonymous image pulls before deploying.
 
@@ -108,9 +138,11 @@ Use the pinned server and isolated temporary databases:
 python3 tests/integration.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/skill.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/deploy.py --binary ../pocketcontext/bin/pocketcontext
+python3 tests/oauth.py
+python3 tests/oauth_integration.py --binary ../pocketcontext/bin/pocketcontext
 ```
 
-Integration covers concurrent revisions and issue allocation, rejected writes, hierarchy, shared identities, permissions, atomic batches, history, and rollback on audit/directory failures. Skill tests copy the installed skill outside the repository and verify its client, secure cache, and schema contract. Deployment tests check settings, proxy limits, health, and password changes.
+Integration covers concurrent revisions and issue allocation, rejected writes, hierarchy, shared identities, permissions, atomic batches, history, and rollback on audit/directory failures. Skill tests copy the installed skill outside the repository and verify its client, secure cache, and schema contract. Deployment tests check settings, proxy limits, health, and password changes. OAuth tests cover the loopback callback, state and PKCE, private session cache, renewal, and rejected logins; OAuth integration uses a local provider fixture with the pinned server. A real Google Workspace login still requires configured credentials and a human browser.
 
 With Docker available:
 

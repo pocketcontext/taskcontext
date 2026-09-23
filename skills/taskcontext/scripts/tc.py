@@ -4,14 +4,16 @@
 Configuration comes from three environment variables:
   TASKCONTEXT_URL             server address, for example https://tasks.example.com
   TASKCONTEXT_USER_EMAIL     email of an account in the `users` collection
-  TASKCONTEXT_USER_PASSWORD  password of that account
+  TASKCONTEXT_USER_PASSWORD  password of that account (optional with Google login)
 
 Exit codes: 0 success; 1 HTTP or transport error; 2 usage or configuration error;
 3 `check` found schema differences; 4 HTTP 409 (read the record again, then retry).
 """
 import argparse
+import base64
 import hashlib
 import http.client
+import http.server
 import json
 import os
 from pathlib import Path
@@ -19,6 +21,7 @@ import re
 import secrets
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -56,7 +59,7 @@ def dump(data, pretty=False):
     return json.dumps(data, separators=(',', ':'), ensure_ascii=False)
 
 
-def config(names=ENV):
+def config(names=ENV[:2]):
     missing = [name for name in names if not os.environ.get(name)]
     if missing:
         raise Fail(2, 'missing environment variable: ' + ', '.join(missing) + '. Ask the user to set every missing variable; do not look for credentials elsewhere.')
@@ -80,7 +83,9 @@ def cache_file(cfg):
 def load_session(cfg):
     try:
         session = json.loads(cache_file(cfg).read_text())
-        return session if hide(session['token']) else None
+        if not isinstance(session, dict) or session.get('url') != cfg['url'] or session.get('email') != cfg['email']:
+            return None
+        return session if isinstance(session.get('token'), str) and hide(session['token']) else None
     except (OSError, ValueError, KeyError, TypeError):
         return None
 
@@ -96,7 +101,7 @@ def save_session(cfg, session):
             json.dump(session, handle)
         os.replace(temporary, path)
     except OSError as error:
-        say(f'note: token not cached ({error.strerror}); the next command logs in again')
+        say(f'note: token not cached ({error.strerror}); sign-in will be required again')
 
 
 # HTTP
@@ -135,12 +140,136 @@ def send(cfg, method, path, body=None, token=None, timeout=TIMEOUT):
 
 
 def login(cfg):
+    if not cfg.get('password'):
+        raise Fail(2, 'Set TASKCONTEXT_USER_PASSWORD for password login, or run tc.py login --google for browser sign-in.')
     status, data = send(cfg, 'POST', '/api/collections/users/auth-with-password', {'identity': cfg['email'], 'password': cfg['password']})
     if status != 200 or not isinstance(data, dict) or 'token' not in data:
         raise Fail(1, f'login as {cfg["email"]} failed: HTTP {status}\n{dump(data)}\nCheck the three TASKCONTEXT_ variables with the user. User credentials only.')
     session = {'url': cfg['url'], 'email': cfg['email'], 'token': hide(data['token'])}
     save_session(cfg, session)
     return session
+
+
+def auth_session(cfg, data, method):
+    """Accept only the expected users identity; never retain provider metadata."""
+    token = data.get('token') if isinstance(data, dict) else None
+    if isinstance(token, str):
+        hide(token)
+    record = data.get('record') if isinstance(data, dict) else None
+    if (not isinstance(token, str) or not token or not isinstance(record, dict) or record.get('collectionName') != 'users'
+            or not record.get('id') or not isinstance(record.get('email'), str)
+            or record['email'].casefold() != cfg['email'].casefold()):
+        raise Fail(1, 'Authentication returned an unexpected identity; no session saved. Check TASKCONTEXT_USER_EMAIL.')
+    session = {'url': cfg['url'], 'email': cfg['email'], 'token': token, 'method': method, 'refreshed_at': time.time()}
+    save_session(cfg, session)
+    return session
+
+
+def oauth_send(cfg, method, path, body=None, token=None):
+    try:
+        return send(cfg, method, path, body, token)
+    except Fail:
+        # Redirect locations and transport errors may contain authorization credentials.
+        raise Fail(1, 'OAuth authentication request failed; check the server URL and connection, then retry.') from None
+
+
+def oauth_refresh_needed(session):
+    """Unverified JWT claims only schedule renewal; the server always authenticates the token."""
+    try:
+        payload = session['token'].split('.')[1]
+        claims = json.loads(base64.urlsafe_b64decode(payload + '=' * (-len(payload) % 4)))
+        now = time.time()
+        refreshed_at = session['refreshed_at']
+        return (not 0 <= now - refreshed_at < 300 or claims['exp'] <= now + 60)
+    except (ValueError, TypeError, KeyError, IndexError):
+        return True
+
+
+def google_login(cfg, port=8765, timeout=180):
+    if not 1 <= port <= 65535 or not 1 <= timeout <= 600:
+        raise Fail(2, 'OAuth port must be 1–65535 and timeout must be 1–600 seconds')
+    status, data = oauth_send(cfg, 'GET', '/api/collections/users/auth-methods')
+    oauth = data.get('oauth2', {}) if isinstance(data, dict) else {}
+    providers = oauth.get('providers', [])
+    provider = next((p for p in providers if isinstance(p, dict) and p.get('name') == 'google'), None)
+    if status != 200 or not oauth.get('enabled') or not provider:
+        raise Fail(1, 'Google OAuth is not enabled on this TaskContext server.')
+    auth_url = urllib.parse.urlsplit(provider.get('authURL', ''))
+    if auth_url.scheme != 'https' or auth_url.hostname != 'accounts.google.com' or auth_url.username or auth_url.password or auth_url.fragment:
+        raise Fail(1, 'Server returned an unexpected Google authorization URL.')
+    state = secrets.token_urlsafe(32)
+    verifier = hide(secrets.token_urlsafe(48))
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b'=').decode()
+    redirect = f'http://127.0.0.1:{port}/callback'
+    metadata = urllib.parse.parse_qs(auth_url.query)
+    client_ids = metadata.get('client_id', [])
+    if len(client_ids) != 1 or not client_ids[0]:
+        raise Fail(1, 'Server returned an invalid Google client ID.')
+    params = {'client_id': client_ids[0]}
+    params.update(state=state, code_challenge=challenge, code_challenge_method='S256', redirect_uri=redirect,
+                  login_hint=cfg['email'], response_type='code', scope='openid email profile', access_type='online')
+    url = urllib.parse.urlunsplit(auth_url._replace(query=urllib.parse.urlencode(params)))
+    outcome = {}
+
+    class Callback(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass  # Callback URLs contain credentials.
+
+        def do_GET(self):
+            parsed = urllib.parse.urlsplit(self.path)
+            values = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+            code = values.get('code', [])
+            valid_state = values.get('state', [])
+            valid = (self.headers.get('Host') == f'127.0.0.1:{port}' and parsed.path == '/callback' and len(valid_state) == 1
+                     and secrets.compare_digest(valid_state[0], state))
+            if not valid:
+                status, message = 400, 'Invalid sign-in callback. Return to your terminal.'
+            elif 'error' in values:
+                outcome['error'] = 'Google sign-in was denied or cancelled; run tc.py login --google to retry.'
+                status, message = 400, 'Sign-in was cancelled. Return to your terminal.'
+            elif len(code) != 1 or not code[0]:
+                outcome['error'] = 'Google returned an invalid sign-in callback.'
+                status, message = 400, 'Invalid sign-in callback. Return to your terminal.'
+            else:
+                outcome['code'] = hide(code[0])
+                status, message = 200, 'Authorization received. Return to your terminal to check sign-in.'
+            self.send_response(status)
+            self.send_header('Content-Type', 'text/plain; charset=utf-8')
+            self.send_header('Cache-Control', 'no-store')
+            self.send_header('Referrer-Policy', 'no-referrer')
+            self.end_headers()
+            self.wfile.write(message.encode())
+
+    class Listener(http.server.HTTPServer):
+        def get_request(self):
+            connection, address = super().get_request()
+            connection.settimeout(1)
+            return connection, address
+
+        def handle_error(self, request, client_address):
+            pass  # Never print request data or exception tracebacks.
+
+    try:
+        server = Listener(('127.0.0.1', port), Callback)
+    except OSError:
+        raise Fail(1, f'Cannot listen on 127.0.0.1:{port}; check for another login process or choose --port.')
+    with server:
+        server.timeout = 0.25
+        say(f'For SSH, forward this port: ssh -L {port}:127.0.0.1:{port} user@ssh-host')
+        say('Open this URL in your browser (keep it private):\n' + url)
+        deadline = time.monotonic() + timeout
+        while not outcome and time.monotonic() < deadline:
+            server.handle_request()
+    if not outcome:
+        raise Fail(1, 'Google sign-in timed out; run tc.py login --google to retry.')
+    if 'error' in outcome:
+        raise Fail(1, outcome['error'])
+    status, data = oauth_send(cfg, 'POST', '/api/collections/users/auth-with-oauth2', {
+        'provider': 'google', 'code': outcome['code'], 'codeVerifier': verifier, 'redirectURL': redirect,
+    })
+    if status != 200:
+        raise Fail(1, f'Google sign-in failed: HTTP {status}. Confirm your account is provisioned and the redirect URI matches.')
+    return auth_session(cfg, data, 'google')
 
 
 def token_rejected(cfg, token):
@@ -158,8 +287,18 @@ def call(cfg, method, path, body=None):
     cached = session is not None
     if not cached:
         session = login(cfg)
+    if session.get('method') == 'google' and (oauth_refresh_needed(session) or path == '/api/collections/users/auth-refresh'):
+        # Renew at most every five minutes, or near expiry, to respect auth rate limits.
+        status, data = oauth_send(cfg, 'POST', '/api/collections/users/auth-refresh', token=session['token'])
+        if status != 200:
+            raise Fail(1, f'Google session could not be refreshed (HTTP {status}); run tc.py login --google again.')
+        session = auth_session(cfg, data, 'google')
+        if path == '/api/collections/users/auth-refresh':
+            return status, data
     status, data = send(cfg, method, path, body, session['token'])
     if cached and 400 <= status < 500 and status != 409 and (status == 401 or token_rejected(cfg, session['token'])):
+        if session.get('method') == 'google':
+            raise Fail(1, 'Google session was rejected; run tc.py login --google again.')
         session = login(cfg)
         status, data = send(cfg, method, path, body, session['token'])
     return status, data
@@ -276,6 +415,10 @@ def run(args):
         say(f'removed {path}', sys.stdout)
         return 0
     cfg = config()
+    if args.command == 'login':
+        google_login(cfg, args.port, args.timeout)
+        say(f'Signed in as {cfg["email"]} at {cfg["url"]}', sys.stdout)
+        return 0
     # Reject malformed writes before authentication or any network request.
     body = None
     if args.command in ('create', 'update'):
@@ -298,7 +441,7 @@ def run(args):
     if args.command == 'check':
         return check(cfg)
     if args.command == 'whoami':
-        # auth-refresh returns the account behind the token. The new token it also returns is not used.
+        # OAuth calls persist refreshed tokens; password sessions keep their existing recovery behavior.
         refreshed = must(cfg, 'POST', '/api/collections/users/auth-refresh')
         hide(refreshed.get('token'))
         record = refreshed['record']
@@ -346,6 +489,10 @@ def parse(argv):
         command = commands.add_parser(name, parents=[pretty], help=text, description=text)
         for argument, argument_help in arguments:
             command.add_argument(argument, help=argument_help)
+    oauth_login = commands.add_parser('login', help='sign in with Google using a browser and a loopback callback')
+    oauth_login.add_argument('--google', action='store_true', required=True)
+    oauth_login.add_argument('--port', type=int, default=8765, help='loopback callback port; register the matching redirect URI')
+    oauth_login.add_argument('--timeout', type=int, default=180, help='seconds to wait for the browser (1–600)')
     add('whoami', 'print the user id, name, and server URL; use the id for `assignee`')
     add('check', 'compare the live schema with references/schema.json; exit 3 when they differ')
     add('schema', 'print the live SQL tables and columns')

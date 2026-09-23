@@ -6,6 +6,7 @@ import contextlib
 import json
 import os
 from pathlib import Path
+import shutil
 import socket
 import socketserver
 import subprocess
@@ -17,7 +18,8 @@ import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ['BASE_URL', 'SMTP_ADDRESS', 'SMTP_PORT', 'SMTP_USERNAME', 'SMTP_PASSWORD', 'MAILER_FROM_ADDRESS',
-            'TASKCONTEXT_TRUSTED_PROXY_HEADER', 'TASKCONTEXT_RATE_LIMITS']
+            'TASKCONTEXT_TRUSTED_PROXY_HEADER', 'TASKCONTEXT_RATE_LIMITS',
+            'TASKCONTEXT_GOOGLE_CLIENT_ID', 'TASKCONTEXT_GOOGLE_CLIENT_SECRET']
 ADMIN, ADMIN_PASSWORD = 'test-admin@example.com', 'TestAdminPassword123!'
 SMTP_PASSWORD = 'TestSmtpPassword123!'
 RULES = [
@@ -101,6 +103,8 @@ def main():
         'SMTP_ADDRESS': '127.0.0.1', 'SMTP_PORT': str(mailbox.server_address[1]),
         'SMTP_USERNAME': 'mailer', 'SMTP_PASSWORD': SMTP_PASSWORD,
         'TASKCONTEXT_TRUSTED_PROXY_HEADER': 'X-Forwarded-For', 'TASKCONTEXT_RATE_LIMITS': 'true',
+        'TASKCONTEXT_GOOGLE_CLIENT_ID': 'upsert-test.apps.googleusercontent.com',
+        'TASKCONTEXT_GOOGLE_CLIENT_SECRET': 'TestUpsertGoogleSecret123!',
     }
     with tempfile.TemporaryDirectory(prefix='taskcontext-deploy-') as tmp:
         data = str(Path(tmp) / 'pb_data')
@@ -174,8 +178,9 @@ def main():
                                     check=True, capture_output=True, text=True)
             output = upsert.stdout + upsert.stderr
             with item('D2 one log line per applied group, without secret values'):
-                assert output.count('deploy: applied') == 5, output
+                assert output.count('deploy: applied') == 6, output
                 assert SMTP_PASSWORD not in output and ADMIN_PASSWORD not in output, 'a secret reached the command output'
+                assert contract['TASKCONTEXT_GOOGLE_CLIENT_SECRET'] not in output, 'Google secret reached command output'
 
             start('first', contract)
             with item('D1 /up answers 200 without authentication'):
@@ -209,6 +214,8 @@ def main():
 
             with item('D3 users collection options'):
                 collection = request('GET', '/api/collections/users', token=admin)
+                assert collection['oauth2']['enabled'] is True
+                assert collection['oauth2']['providers'][0]['clientId'] == contract['TASKCONTEXT_GOOGLE_CLIENT_ID']
                 assert collection['authToken']['duration'] == 86400, collection['authToken']
                 assert collection['authAlert']['enabled'] is False, collection['authAlert']
                 claims = json.loads(base64.urlsafe_b64decode(token1.split('.')[1] + '=='))
@@ -326,13 +333,87 @@ def main():
                 bad_login('203.0.113.53', 429)
             output = stop()
             assert output.count('deploy: applied') == 1, output
+            # Exercise OAuth on a genuinely empty database without the container's optional upsert.
+            common[common.index('--dir') + 1] = str(Path(tmp) / 'oauth-data')
+            oauth = {'TASKCONTEXT_GOOGLE_CLIENT_ID': 'test-client.apps.googleusercontent.com',
+                     'TASKCONTEXT_GOOGLE_CLIENT_SECRET': 'TestGoogleSecret123!'}
+            start('oauth-fresh', oauth)
+            methods = request('GET', '/api/collections/users/auth-methods')
+            assert methods['oauth2']['enabled'] is True and methods['password']['enabled'] is True, methods
+            assert methods['oauth2']['providers'][0]['name'] == 'google', methods
+            output = stop()
+            assert output.count('deploy: applied Google OAuth') == 1, output
+            assert oauth['TASKCONTEXT_GOOGLE_CLIENT_SECRET'] not in output, 'Google secret reached logs'
+            subprocess.run(common + ['superuser', 'upsert', ADMIN, ADMIN_PASSWORD], cwd=ROOT, env=clean,
+                           check=True, capture_output=True, text=True)
+            start('oauth-repeat', oauth)
+            admin = login('_superusers', ADMIN, ADMIN_PASSWORD, None)['token']
+            collection = request('GET', '/api/collections/users', token=admin)
+            assert collection['createRule'] is None and collection['passwordAuth']['enabled'] is True
+            assert collection['authToken']['duration'] == 86400
+            providers = collection['oauth2']['providers']
+            assert oauth['TASKCONTEXT_GOOGLE_CLIENT_SECRET'] not in json.dumps(providers)
+            # Add another provider and preserve a custom Google display label and field mapping.
+            providers[0]['displayName'] = 'Workspace sign-in'
+            providers.append({'name': 'github', 'clientId': 'github-test', 'clientSecret': 'TestGithubSecret123!'})
+            request('PATCH', '/api/collections/users', {'oauth2': {'providers': providers, 'mappedFields': {'name': 'name'}}}, admin)
+            assert 'deploy: applied Google OAuth' not in stop(), 'unchanged OAuth configuration was saved again'
+            rotated = {**oauth, 'TASKCONTEXT_GOOGLE_CLIENT_ID': 'rotated.apps.googleusercontent.com',
+                       'TASKCONTEXT_GOOGLE_CLIENT_SECRET': 'RotatedGoogleSecret123!'}
+            start('oauth-rotate', rotated)
+            admin = login('_superusers', ADMIN, ADMIN_PASSWORD, None)['token']
+            stored = request('GET', '/api/collections/users', token=admin)
+            assert stored['oauth2']['providers'][0]['clientId'] == rotated['TASKCONTEXT_GOOGLE_CLIENT_ID']
+            assert stored['oauth2']['providers'][0]['displayName'] == 'Workspace sign-in'
+            assert stored['oauth2']['providers'][1]['name'] == 'github'
+            assert stored['oauth2']['mappedFields']['name'] == 'name'
+            assert stored['createRule'] is None and stored['passwordAuth'] == collection['passwordAuth']
+            output = stop()
+            assert output.count('deploy: applied Google OAuth') == 1
+            assert all(value not in output for value in (oauth['TASKCONTEXT_GOOGLE_CLIENT_SECRET'], rotated['TASKCONTEXT_GOOGLE_CLIENT_SECRET']))
+            start('oauth-rotation-repeat', rotated)
+            assert 'deploy: applied Google OAuth' not in stop(), 'rotated secret was not persisted'
+            start('oauth-absent', {})
+            admin = login('_superusers', ADMIN, ADMIN_PASSWORD, None)['token']
+            assert request('GET', '/api/collections/users', token=admin)['oauth2'] == stored['oauth2']
+            assert 'deploy: applied Google OAuth' not in stop()
+            for name, invalid in [('missing-secret', {'TASKCONTEXT_GOOGLE_CLIENT_ID': 'test'}),
+                                  ('missing-id', {'TASKCONTEXT_GOOGLE_CLIENT_SECRET': 'SecretMustNotBeLogged'}),
+                                  ('blank-secret', {'TASKCONTEXT_GOOGLE_CLIENT_ID': 'test', 'TASKCONTEXT_GOOGLE_CLIENT_SECRET': '   '})]:
+                if name != 'blank-secret':
+                    entry = subprocess.run(['sh', str(ROOT / 'docker/entrypoint.sh')], env={**clean, **invalid},
+                                           capture_output=True, text=True, timeout=5)
+                    assert entry.returncode != 0 and 'requires TASKCONTEXT_GOOGLE_' in entry.stderr
+                    assert 'SecretMustNotBeLogged' not in entry.stdout + entry.stderr
+                result = subprocess.run(common + ['serve', '--http', f'127.0.0.1:{free_port()}'], cwd=ROOT,
+                                        env={**clean, **invalid}, capture_output=True, text=True, timeout=15)
+                output = result.stdout + result.stderr
+                assert result.returncode != 0 and 'must be set together' in output, name
+                assert 'SecretMustNotBeLogged' not in output and 'Server started' not in output, name
+            result = subprocess.run(common + ['serve', '--http', f'127.0.0.1:{free_port()}'], cwd=ROOT,
+                                    env={**clean, **oauth, 'TASKCONTEXT_GOOGLE_CLIENT_SECRET': ' secret with whitespace '},
+                                    capture_output=True, text=True, timeout=15)
+            output = result.stdout + result.stderr
+            assert result.returncode != 0 and 'must not contain whitespace' in output
+            assert 'secret with whitespace' not in output and 'Server started' not in output
+            # Maintenance must not accidentally apply pending app migrations at bootstrap.
+            migrations = Path(tmp) / 'maintenance-migrations'
+            shutil.copytree(ROOT / 'pb_migrations', migrations)
+            (migrations / '1999999999_pending.js').write_text(
+                'migrate(() => { throw new Error("Pending migration must not run during history-sync"); }, () => {});')
+            maintenance = list(common)
+            maintenance[maintenance.index('--migrationsDir') + 1] = str(migrations)
+            result = subprocess.run(maintenance + ['migrate', 'history-sync'], cwd=ROOT, env={**clean, **rotated},
+                                    capture_output=True, text=True, timeout=15)
+            assert result.returncode == 0, result.stdout + result.stderr
         finally:
             stop()
             mailbox.shutdown()
             mailbox.server_close()
     print('PASS: /up health check, settings from the environment, SMTP credentials in use, idempotent and group-wise apply, '
           'stored settings kept without variables, trusted proxy header, rate limit rules per client IP, /up never limited or logged, '
-          'user self password change, token invalidation, one-day user tokens, no secrets in output')
+          'user self password change, token invalidation, one-day user tokens, Google OAuth fresh startup, preservation, rotation, '
+          'idempotence and incomplete configuration rejection, no secrets in output')
 
 
 if __name__ == '__main__':

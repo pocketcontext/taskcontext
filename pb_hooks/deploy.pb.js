@@ -9,4 +9,5 @@ routerAdd("GET", "/up", (e) => require(`${__hooks}/deploy.js`).up(e), $apis.skip
 onBootstrap((e) => {
   e.next();
   require(`${__hooks}/deploy.js`).settings(e.app);
+  require(`${__hooks}/deploy.js`).googleOAuth(e.app);
 });

@@ -97,4 +97,40 @@ function settings(app) {
   }
 }
 
-module.exports = {up, settings, RULES};
+function googleOAuth(app) {
+  const clientId = String($os.getenv("TASKCONTEXT_GOOGLE_CLIENT_ID") || "");
+  const clientSecret = String($os.getenv("TASKCONTEXT_GOOGLE_CLIENT_SECRET") || "");
+  if (!clientId && !clientSecret) return;
+  if (!clientId.trim() || !clientSecret.trim()) {
+    throw new Error("TASKCONTEXT_GOOGLE_CLIENT_ID and TASKCONTEXT_GOOGLE_CLIENT_SECRET must be set together");
+  }
+  if (/\s/.test(clientId) || /\s/.test(clientSecret)) {
+    throw new Error("TaskContext Google OAuth credentials must not contain whitespace");
+  }
+  try {
+    // PocketBase's system migrations already created users before bootstrap
+    // completes. TaskContext migrations deliberately preserve its OAuth options.
+    // Do not run app migrations here: maintenance commands control their own passes.
+    const users = app.findCollectionByNameOrId("users");
+    // Clone the native provider slice before changing it; retain all other providers,
+    // custom Google options, field mappings, password settings, and access rules.
+    const providers = JSON.parse(JSON.stringify(users.oauth2.providers || []));
+    let google = providers.find(provider => provider.name === "google");
+    if (google && users.oauth2.enabled && google.clientId === clientId && google.clientSecret === clientSecret) return;
+    if (!google) {
+      google = {name: "google"};
+      providers.push(google);
+    }
+    google.clientId = clientId;
+    google.clientSecret = clientSecret;
+    users.oauth2.providers = providers;
+    users.oauth2.enabled = true;
+    app.save(users);
+    console.log("deploy: applied Google OAuth from the environment");
+  } catch (_) {
+    // Collection validation errors can include provider values. Never expose them.
+    throw new Error("Could not apply TaskContext Google OAuth configuration; server startup stopped");
+  }
+}
+
+module.exports = {up, settings, googleOAuth, RULES};
