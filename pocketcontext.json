@@ -1,0 +1,7 @@
+{
+  "authCollection": "users",
+  "tables": {"user_directory": ["id", "name"], "projects": [], "issues": [], "issue_links": [], "comments": [], "references": [], "audit_log": []},
+  "timeoutMs": 2000,
+  "maxRows": 500,
+  "maxBytes": 1048576
+}

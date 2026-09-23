@@ -1,0 +1,6 @@
+.env*
+.direnv/
+pb_data/
+__pycache__/
+*.pyc
+bin/
