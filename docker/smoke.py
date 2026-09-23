@@ -248,6 +248,7 @@ def once_env(extra=None):
         'TASKCONTEXT_SUPERUSER_EMAIL': 'operator@example.test', 'TASKCONTEXT_SUPERUSER_PASSWORD': secret('-' + secrets.token_urlsafe(24)),
         'TASKCONTEXT_GOOGLE_CLIENT_ID': 'image-test.apps.googleusercontent.com',
         'TASKCONTEXT_GOOGLE_CLIENT_SECRET': secret(secrets.token_urlsafe(24)),
+        'TASKCONTEXT_REQUIRED_USERS': json.dumps([{'email': 'required@example.test', 'name': 'Required test user'}]),
     }
     env.update(extra or {})
     return env
@@ -277,6 +278,12 @@ def smoke(image, tmp, run_id):
     check(collection['oauth2']['providers'][0]['clientId'] == env['TASKCONTEXT_GOOGLE_CLIENT_ID'], 'Google client ID matches the environment')
     check(env['TASKCONTEXT_GOOGLE_CLIENT_SECRET'] not in json.dumps(collection), 'the collection API does not return the Google secret')
     check(collection['createRule'] is None and collection['passwordAuth']['enabled'], 'operator-only provisioning and password login are preserved')
+
+    status, _, required = http('GET', base + '/api/collections/users/records?filter=email%3D%22required%40example.test%22', token=token)
+    check(status == 200 and len(required['items']) == 1, 'required user is provisioned on a fresh container')
+    required_id = required['items'][0]['id']
+    status, _, _ = http('DELETE', base + '/api/collections/users/records/' + required_id, token=token)
+    check(status in (400, 403), 'required user cannot be deleted through the operator API')
 
     step('CORS: only BASE_URL is an allowed origin')
     _, reply, _ = http('GET', base + '/api/health', headers={'Origin': env['BASE_URL']})

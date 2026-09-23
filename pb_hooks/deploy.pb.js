@@ -10,4 +10,5 @@ onBootstrap((e) => {
   e.next();
   require(`${__hooks}/deploy.js`).settings(e.app);
   require(`${__hooks}/deploy.js`).googleOAuth(e.app);
+  require(`${__hooks}/required_users.js`).ensure(e.app, true);
 });

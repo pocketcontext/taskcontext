@@ -17,7 +17,7 @@ make build
   --contextConfig=./pocketcontext.json
 ```
 
-Migrations run at startup. No business records or user passwords are seeded. `pb_data/` is local state and must not enter Git. Restart after schema or SQL policy changes.
+Migrations run at startup. No business records are seeded. User accounts are provisioned only by an operator or the optional required-users configuration below. `pb_data/` is local state and must not enter Git. Restart after schema or SQL policy changes.
 
 ## Provision users
 
@@ -30,6 +30,16 @@ An operator creates a superuser with the server's `superuser upsert` command aga
 Ordinary operations authenticate at `POST /api/collections/users/auth-with-password` and use the returned token in `Authorization`. Users cannot provision accounts, change the schema, or read another user's authentication record. `user_directory` exposes only IDs and display names to authenticated users. An operator manages names and email addresses; users can change their own password by supplying `password`, `passwordConfirm`, and `oldPassword`. Password changes invalidate existing tokens. Tokens last one day.
 
 Use the person's user account for their agent: assignment, reporter, and audit attribution all use the same identity. There is no second agent account requirement.
+
+To ensure selected accounts exist, set `TASKCONTEXT_REQUIRED_USERS` on the server:
+
+```sh
+export TASKCONTEXT_REQUIRED_USERS='[{"email":"member@example.com","name":"Team member"}]'
+```
+
+Startup provisions missing accounts with random, undisclosed passwords and unverified email addresses. Existing accounts keep their ID, name, password, and verification state. Required accounts cannot be deleted or have their email changed through record writes, including superuser writes. Remove an account from the configuration and restart before intentionally deleting or renaming it. An absent configuration leaves existing accounts untouched and imposes no required-account protection. Invalid configuration prevents startup.
+
+Use Google OAuth or an operator-managed password reset to sign in. Configuration does not verify ownership of an email address. If an account was removed during maintenance, the next configured startup recreates it with a new ID; prior attribution is not restored to the new identity.
 
 ## Install the skill
 
@@ -104,6 +114,7 @@ The Dockerfile pins PocketContext, base images, and Litestream. It serves port 8
 | --- | --- |
 | `BASE_URL` | Public application origin; also the allowed browser origin. ONCE supplies it. |
 | `TASKCONTEXT_SUPERUSER_EMAIL`, `TASKCONTEXT_SUPERUSER_PASSWORD` | Operator account upserted on container startup; set both together. |
+| `TASKCONTEXT_REQUIRED_USERS` | Optional JSON array of `{email,name}` accounts provisioned on startup and protected from deletion or email changes while configured. |
 | `TASKCONTEXT_GOOGLE_CLIENT_ID`, `TASKCONTEXT_GOOGLE_CLIENT_SECRET` | Optional Google OAuth provider credentials; set both together. Absent values preserve stored provider configuration. |
 | `TASKCONTEXT_TRUSTED_PROXY_HEADER` | Trusted proxy client-address header; deployment uses `X-Forwarded-For`. |
 | `TASKCONTEXT_RATE_LIMITS` | `true` in the image; `false` disables API limits. |
@@ -138,11 +149,12 @@ Use the pinned server and isolated temporary databases:
 python3 tests/integration.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/skill.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/deploy.py --binary ../pocketcontext/bin/pocketcontext
+python3 tests/required_users.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/oauth.py
 python3 tests/oauth_integration.py --binary ../pocketcontext/bin/pocketcontext
 ```
 
-Integration covers concurrent revisions and issue allocation, rejected writes, hierarchy, shared identities, permissions, atomic batches, history, and rollback on audit/directory failures. Skill tests copy the installed skill outside the repository and verify its client, secure cache, and schema contract. Deployment tests check settings, proxy limits, health, and password changes. OAuth tests cover the loopback callback, state and PKCE, private session cache, renewal, and rejected logins; OAuth integration uses a local provider fixture with the pinned server. A real Google Workspace login still requires configured credentials and a human browser.
+Integration covers concurrent revisions and issue allocation, rejected writes, hierarchy, shared identities, permissions, atomic batches, history, and rollback on audit/directory failures. Skill tests copy the installed skill outside the repository and verify its client, secure cache, and schema contract. Deployment tests check settings, proxy limits, health, and password changes. Required-user tests cover provisioning, preservation, removal protection, recreation after maintenance, and invalid configuration. OAuth tests cover the loopback callback, state and PKCE, private session cache, renewal, and rejected logins; OAuth integration uses a local provider fixture with the pinned server. A real Google Workspace login still requires configured credentials and a human browser.
 
 With Docker available:
 
