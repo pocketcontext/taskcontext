@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import secrets
 import threading
+import time
 import urllib.parse
 
 from integration import server
@@ -110,6 +111,9 @@ def main():
         token = auth['token']
         refreshed = request('POST', '/api/collections/users/auth-refresh', token=token)
         assert refreshed['record']['id'] == user['id'] and refreshed['token']
+        for issued in (token, refreshed['token']):
+            claims = json.loads(base64.urlsafe_b64decode(issued.split('.')[1] + '=='))
+            assert abs(claims['exp'] - time.time() - 604800) < 30
         project = request('POST', '/api/collections/projects/records', {
             'key': 'OAUTH', 'name': 'Synthetic OAuth project',
         }, token)

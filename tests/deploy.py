@@ -216,10 +216,10 @@ def main():
                 collection = request('GET', '/api/collections/users', token=admin)
                 assert collection['oauth2']['enabled'] is True
                 assert collection['oauth2']['providers'][0]['clientId'] == contract['TASKCONTEXT_GOOGLE_CLIENT_ID']
-                assert collection['authToken']['duration'] == 86400, collection['authToken']
+                assert collection['authToken']['duration'] == 604800, collection['authToken']
                 assert collection['authAlert']['enabled'] is False, collection['authAlert']
                 claims = json.loads(base64.urlsafe_b64decode(token1.split('.')[1] + '=='))
-                assert abs(claims['exp'] - time.time() - 86400) < 300, claims['exp']
+                assert abs(claims['exp'] - time.time() - 604800) < 300, claims['exp']
             with item('D3 an user changes only its own password, and only with oldPassword'):
                 new = 'ChangedUserPassword1!'
                 change = {'password': new, 'passwordConfirm': new}
@@ -350,7 +350,7 @@ def main():
             admin = login('_superusers', ADMIN, ADMIN_PASSWORD, None)['token']
             collection = request('GET', '/api/collections/users', token=admin)
             assert collection['createRule'] is None and collection['passwordAuth']['enabled'] is True
-            assert collection['authToken']['duration'] == 86400
+            assert collection['authToken']['duration'] == 604800
             providers = collection['oauth2']['providers']
             assert oauth['TASKCONTEXT_GOOGLE_CLIENT_SECRET'] not in json.dumps(providers)
             # Add another provider and preserve a custom Google display label and field mapping.
@@ -412,7 +412,7 @@ def main():
             mailbox.server_close()
     print('PASS: /up health check, settings from the environment, SMTP credentials in use, idempotent and group-wise apply, '
           'stored settings kept without variables, trusted proxy header, rate limit rules per client IP, /up never limited or logged, '
-          'user self password change, token invalidation, one-day user tokens, Google OAuth fresh startup, preservation, rotation, '
+          'user self password change, token invalidation, seven-day user tokens, Google OAuth fresh startup, preservation, rotation, '
           'idempotence and incomplete configuration rejection, no secrets in output')
 
 
