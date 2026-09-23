@@ -1,4 +1,34 @@
-# First release deployment
+# Deployment record
+
+## Google Workspace JIT — 23 September 2026
+
+Application commit `d0fa646` was deployed with image
+`ghcr.io/pocketcontext/taskcontext@sha256:32c298d6311471c9221dcefbb75ca599b4f3dfec0d663712ed97289f5fe231f2`.
+[Container CI and deployment](https://github.com/pocketcontext/taskcontext/actions/runs/35905523910)
+passed application, OAuth/JIT, disabled-account, realtime revocation, smoke,
+restore, both architecture builds, publication, and public health checks.
+All Python suites and the pinned-server build also passed locally.
+
+A targeted environment update under the deployment lock gracefully stopped the
+old container before replacement. `TASKCONTEXT_GOOGLE_WORKSPACE_DOMAIN` is
+`pocketcontext.com`; `TASKCONTEXT_REQUIRED_USERS` is `[]`. The existing Google
+credentials, all other environment values, resources, disabled automatic updates,
+and sibling containers were preserved. Alberto's account remains active with ID
+`konw1lekaa9nl37`; it is no longer provisioned at startup. Verified live Google
+provider enablement, password availability, OAuth-only signup rule, disabled-user
+auth rule, seven-day token duration, and public `/up` health. No synthetic users
+were created in production. First-login JIT and rejection cases were tested using
+an isolated synthetic Google provider; a real existing-user login had previously
+been confirmed by the user.
+
+User records now cannot be deleted. Disable access using the operator-managed
+`disabled` field to preserve attribution and revoke sessions. This migration is
+not reversible through an automatic migration rollback; use a deliberate backup
+restore if rollback is required.
+
+The records below describe the original release.
+
+## First release deployment
 
 Deployed on 23 September 2026 at **https://tasks.pocketcontext.com** on the existing ARM64 ONCE host. The administration dashboard is at `/_/`; this service has no dedicated issue-tracker frontend.
 
