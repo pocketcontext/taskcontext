@@ -102,7 +102,7 @@ fi
 if [ -n "${TASKCONTEXT_SUPERUSER_EMAIL:-}" ] && [ -n "${TASKCONTEXT_SUPERUSER_PASSWORD:-}" ]; then
 	log "upserting the superuser from TASKCONTEXT_SUPERUSER_EMAIL"
 	# shellcheck disable=SC2046 # see serve
-	if ! "$SERVER" superuser upsert "$TASKCONTEXT_SUPERUSER_EMAIL" "$TASKCONTEXT_SUPERUSER_PASSWORD" $(app_flags); then
+	if ! "$SERVER" superuser upsert $(app_flags) -- "$TASKCONTEXT_SUPERUSER_EMAIL" "$TASKCONTEXT_SUPERUSER_PASSWORD"; then
 		die "superuser upsert failed"
 	fi
 elif [ -n "${TASKCONTEXT_SUPERUSER_EMAIL:-}" ]; then

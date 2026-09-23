@@ -245,7 +245,7 @@ def once_env(extra=None):
         'BASE_URL': 'https://tasks.example.test', 'SECRET_KEY_BASE': secret(secrets.token_hex(32)), 'DISABLE_SSL': 'true', 'NUM_CPUS': '2',
         'SMTP_ADDRESS': 'smtp.example.test', 'SMTP_PORT': '587', 'SMTP_USERNAME': 'image-check', 'SMTP_PASSWORD': secret(secrets.token_urlsafe(24)),
         'MAILER_FROM_ADDRESS': 'Info <info@notifications.example.test>',
-        'TASKCONTEXT_SUPERUSER_EMAIL': 'operator@example.test', 'TASKCONTEXT_SUPERUSER_PASSWORD': secret(secrets.token_urlsafe(24)),
+        'TASKCONTEXT_SUPERUSER_EMAIL': 'operator@example.test', 'TASKCONTEXT_SUPERUSER_PASSWORD': secret('-' + secrets.token_urlsafe(24)),
     }
     env.update(extra or {})
     return env
