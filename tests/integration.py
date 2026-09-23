@@ -53,6 +53,7 @@ onRecordCreateExecute((e) => {
                         if proc.poll() is not None: log.seek(0); raise AssertionError(log.read())
                         time.sleep(.1)
                 else: raise AssertionError('Server startup timed out')
+                request.base_url = f'http://127.0.0.1:{port}'
                 yield request
             finally:
                 proc.terminate();proc.wait(timeout=15)
@@ -129,7 +130,7 @@ def main():
         request('POST','/api/context/query',{'sql':'SELECT * FROM project_sequences'},token,400)
         request('GET','/api/context/schema',expected=401)
         for table in ['users','user_directory','audit_log','project_sequences']:
-            request('POST',path(table),{},token,403)
+            request('POST',path(table),{},token,(400,403) if table=='users' else 403)
         request('DELETE',path('issues')+'/'+issue['id'],token=token,expected=403)
         request('POST','/api/collections',{'name':'forbidden'},token,403)
         directory=request('GET',path('user_directory')+'/'+u['id'],token=token);assert directory['name']=='Test person'

@@ -268,7 +268,7 @@ def google_login(cfg, port=8765, timeout=180):
         'provider': 'google', 'code': outcome['code'], 'codeVerifier': verifier, 'redirectURL': redirect,
     })
     if status != 200:
-        raise Fail(1, f'Google sign-in failed: HTTP {status}. Confirm your account is provisioned and the redirect URI matches.')
+        raise Fail(1, f'Google sign-in failed: HTTP {status}. Check Workspace eligibility, account access, and the redirect URI with your operator.')
     return auth_session(cfg, data, 'google')
 
 

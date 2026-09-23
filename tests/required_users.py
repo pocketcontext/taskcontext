@@ -10,6 +10,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+import urllib.parse
 
 ROOT = Path(__file__).resolve().parents[1]
 EMAIL = 'required@example.test'
@@ -87,7 +88,8 @@ def main():
                            {'identity': email, 'password': password})['token']
 
         def users(admin):
-            return request('GET', '/api/collections/users/records', token=admin)['items']
+            query = urllib.parse.urlencode({'filter': 'email:lower = "' + EMAIL + '"'})
+            return request('GET', '/api/collections/users/records?' + query, token=admin)['items']
 
         try:
             # The feature is opt-in, including on a completely empty database.
@@ -130,7 +132,7 @@ def main():
                              'passwordConfirm': PASSWORD}, admin)
             other_path = '/api/collections/users/records/' + other['id']
             request('PATCH', other_path, {'email': 'renamed@example.test'}, admin)
-            request('DELETE', other_path, token=admin, expected=204)
+            request('DELETE', other_path, token=admin, expected=(400, 403))
             stop()
             start(json.dumps([{'email': EMAIL.upper(), 'name': 'Changed configuration name'}]))
             admin = login('_superusers', ADMIN)
@@ -139,12 +141,13 @@ def main():
             assert (stored[0]['name'], stored[0]['verified']) == ('Operator edited', True), stored
             assert request('GET', directory, token=admin)['name'] == 'Operator edited'
             login('users', EMAIL, changed)
-            # Explicitly removing the requirement permits maintenance. Re-enabling recreates a missing account.
+            # Removing the requirement permits email maintenance, but never account deletion.
             stop()
             start()
             admin = login('_superusers', ADMIN)
             assert users(admin)[0]['id'] == first['id']
-            request('DELETE', path, token=admin, expected=204)
+            request('DELETE', path, token=admin, expected=(400, 403))
+            request('PATCH', path, {'email': 'retired@example.test', 'disabled': True}, admin)
             assert users(admin) == []
             # Adopt an operator-provisioned mixed-case identity without creating a duplicate.
             adopted = request('POST', '/api/collections/users/records',
@@ -160,7 +163,8 @@ def main():
             stop()
             start()
             admin = login('_superusers', ADMIN)
-            request('DELETE', '/api/collections/users/records/' + adopted['id'], token=admin, expected=204)
+            request('PATCH', '/api/collections/users/records/' + adopted['id'],
+                    {'email': 'retired-adopted@example.test', 'disabled': True}, admin)
             stop()
             start(CONFIG)
             admin = login('_superusers', ADMIN)
@@ -184,7 +188,7 @@ def main():
         finally:
             stop()
     print('PASS: required users provisioned after migrations, preserved on restart, protected from deletion and email changes, '
-          'recreated after maintenance, directory synchronized, ordinary user lifecycle and password changes preserved, invalid configuration rejected')
+          'recreated after maintenance, directory synchronized, account history and password changes preserved, invalid configuration rejected')
 
 
 if __name__ == '__main__':

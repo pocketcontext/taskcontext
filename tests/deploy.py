@@ -233,7 +233,7 @@ def main():
                     request('PATCH', own, {**change, 'oldPassword': password1, field: value}, token1, expected=404, ip='198.51.100.3')
                     request('PATCH', own, {field: value}, token1, expected=404, ip='198.51.100.3')
                 request('DELETE', own, token=token1, expected=403, ip='198.51.100.3')
-                request('POST', '/api/collections/users/records', {'email': 'self@example.test', 'password': new, 'passwordConfirm': new, 'name': 'Self'}, token1, expected=403, ip='198.51.100.3')
+                request('POST', '/api/collections/users/records', {'email': 'self@example.test', 'password': new, 'passwordConfirm': new, 'name': 'Self'}, token1, expected=400, ip='198.51.100.3')
                 stored = request('GET', own, token=admin)
                 assert (stored['email'], stored['name'], stored['verified'], stored['emailVisibility']) == (email1, 'User 1', False, False), stored
                 assert request('GET', own, token=token1, ip='198.51.100.3')['id'] == first['id']
@@ -349,7 +349,7 @@ def main():
             start('oauth-repeat', oauth)
             admin = login('_superusers', ADMIN, ADMIN_PASSWORD, None)['token']
             collection = request('GET', '/api/collections/users', token=admin)
-            assert collection['createRule'] is None and collection['passwordAuth']['enabled'] is True
+            assert collection['createRule'] == "@request.context = 'oauth2'" and collection['passwordAuth']['enabled'] is True
             assert collection['authToken']['duration'] == 604800
             providers = collection['oauth2']['providers']
             assert oauth['TASKCONTEXT_GOOGLE_CLIENT_SECRET'] not in json.dumps(providers)
@@ -367,7 +367,7 @@ def main():
             assert stored['oauth2']['providers'][0]['displayName'] == 'Workspace sign-in'
             assert stored['oauth2']['providers'][1]['name'] == 'github'
             assert stored['oauth2']['mappedFields']['name'] == 'name'
-            assert stored['createRule'] is None and stored['passwordAuth'] == collection['passwordAuth']
+            assert stored['createRule'] == "@request.context = 'oauth2'" and stored['passwordAuth'] == collection['passwordAuth']
             output = stop()
             assert output.count('deploy: applied Google OAuth') == 1
             assert all(value not in output for value in (oauth['TASKCONTEXT_GOOGLE_CLIENT_SECRET'], rotated['TASKCONTEXT_GOOGLE_CLIENT_SECRET']))

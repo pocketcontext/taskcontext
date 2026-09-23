@@ -277,7 +277,7 @@ def smoke(image, tmp, run_id):
     check(status == 200 and collection['oauth2']['enabled'], 'Google OAuth is enabled after migrations')
     check(collection['oauth2']['providers'][0]['clientId'] == env['TASKCONTEXT_GOOGLE_CLIENT_ID'], 'Google client ID matches the environment')
     check(env['TASKCONTEXT_GOOGLE_CLIENT_SECRET'] not in json.dumps(collection), 'the collection API does not return the Google secret')
-    check(collection['createRule'] is None and collection['passwordAuth']['enabled'], 'operator-only provisioning and password login are preserved')
+    check(collection['createRule'] == "@request.context = 'oauth2'" and collection['passwordAuth']['enabled'], 'OAuth-only signup rule and password login are preserved')
 
     status, _, required = http('GET', base + '/api/collections/users/records?filter=email%3D%22required%40example.test%22', token=token)
     check(status == 200 and len(required['items']) == 1, 'required user is provisioned on a fresh container')

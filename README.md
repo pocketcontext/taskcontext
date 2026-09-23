@@ -17,7 +17,7 @@ make build
   --contextConfig=./pocketcontext.json
 ```
 
-Migrations run at startup. No business records are seeded. User accounts are provisioned only by an operator or the optional required-users configuration below. `pb_data/` is local state and must not enter Git. Restart after schema or SQL policy changes.
+Migrations run at startup. No business records are seeded. User accounts are provisioned by an operator, optional required-users configuration, or validated Google Workspace login when JIT provisioning is enabled. `pb_data/` is local state and must not enter Git. Restart after schema or SQL policy changes.
 
 ## Provision users
 
@@ -27,7 +27,7 @@ An operator creates a superuser with the server's `superuser upsert` command aga
 {"name":"Team member","email":"member@example.com","password":"<strong password>","passwordConfirm":"<same password>"}
 ```
 
-Ordinary operations authenticate at `POST /api/collections/users/auth-with-password` and use the returned token in `Authorization`. Users cannot provision accounts, change the schema, or read another user's authentication record. `user_directory` exposes only IDs and display names to authenticated users. An operator manages names and email addresses; users can change their own password by supplying `password`, `passwordConfirm`, and `oldPassword`. Password changes invalidate existing tokens. Tokens last seven days.
+Ordinary operations authenticate at `POST /api/collections/users/auth-with-password` and use the returned token in `Authorization`. Users cannot directly provision accounts, change the schema, or read another user's authentication record. `user_directory` exposes only IDs and display names to authenticated users. An operator manages names and email addresses; users can change their own password by supplying `password`, `passwordConfirm`, and `oldPassword`. Password changes invalidate existing tokens. Tokens last seven days.
 
 Use the person's user account for their agent: assignment, reporter, and audit attribution all use the same identity. There is no second agent account requirement.
 
@@ -37,9 +37,17 @@ To ensure selected accounts exist, set `TASKCONTEXT_REQUIRED_USERS` on the serve
 export TASKCONTEXT_REQUIRED_USERS='[{"email":"member@example.com","name":"Team member"}]'
 ```
 
-Startup provisions missing accounts with random, undisclosed passwords and unverified email addresses. Existing accounts keep their ID, name, password, and verification state. Required accounts cannot be deleted or have their email changed through record writes, including superuser writes. Remove an account from the configuration and restart before intentionally deleting or renaming it. An absent configuration leaves existing accounts untouched and imposes no required-account protection. Invalid configuration prevents startup.
+Startup provisions missing accounts with random, undisclosed passwords and unverified email addresses. Existing accounts keep their ID, name, password, and verification state. Required accounts cannot be deleted or have their email changed through record writes, including superuser writes. Remove an account from the configuration and restart before changing its email. User deletion is blocked independently of this configuration; disable access instead. An absent configuration leaves existing accounts untouched and imposes no required-account protection. Invalid configuration prevents startup.
 
-Use Google OAuth or an operator-managed password reset to sign in. Configuration does not verify ownership of an email address. If an account was removed during maintenance, the next configured startup recreates it with a new ID; prior attribution is not restored to the new identity.
+Use Google OAuth or an operator-managed password reset to sign in. Configuration does not verify ownership of an email address. This optional startup provisioning is not needed with JIT onboarding. Existing accounts are retained when the requirement is removed.
+
+## Disable accounts without losing history
+
+Operators manage the `disabled` boolean on `users` in the administration dashboard or with `PATCH /api/collections/users/records/<id>` and `{"disabled":true}`. Ordinary users cannot change it. All user deletion is blocked, including operator record deletion, so assignments, directory entries, and audit attribution retain their identities.
+
+Disabling blocks password/OAuth login, token refresh, and subsequent authenticated REST, SQL/schema, batch, and realtime access. Changing the disabled state rotates the user's token key in the same transaction; previously issued tokens remain invalid after re-enabling. Re-enable with `{"disabled":false}`, then sign in again. Requests already executing are not forcibly cancelled. Invalid bearer tokens return HTTP 401 rather than anonymous filtered results.
+
+Google Workspace suspension or consent revocation is not synchronized automatically. Operators must disable the TaskContext account as part of offboarding. JIT login cannot reactivate a disabled account.
 
 ## Install the skill
 
@@ -70,7 +78,13 @@ An operator configures Google once before users sign in:
 1. In a Google Cloud project belonging to your Workspace organization, configure Google Auth Platform branding and select the **Internal** audience. Use only the basic identity scopes `openid`, `email`, and `profile`.
 2. Create an OAuth client of type **Web application**, with the exact authorized redirect URI `http://127.0.0.1:8765/callback`. See [Google OAuth setup](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred).
 3. Supply `TASKCONTEXT_GOOGLE_CLIENT_ID` and `TASKCONTEXT_GOOGLE_CLIENT_SECRET` to the TaskContext server and restart it. Set both together. After PocketBase system bootstrap creates `users`, the startup hook enables Google. TaskContext migrations preserve those OAuth options. The hook preserves other providers and access rules and updates credentials only when changed. Leaving both absent preserves stored settings; it does not disable Google. The secret belongs only on the server, never in the skill environment.
-4. Provision each approved user with their Workspace email using the operator procedure above. Google sign-in associates with that existing email. Public account creation remains disabled; every admitted user can access the shared workspace. Password authentication remains enabled during rollout. PocketBase may reset the existing password when first linking an unverified local account to a verified Google identity; operators should verify provisioned identities before linking if password continuity is required.
+4. To enable first-login provisioning, set `TASKCONTEXT_GOOGLE_WORKSPACE_DOMAIN=pocketcontext.com` and restart. The server requires Google as provider, a verified email, a matching Google `hd` (hosted-domain) claim, and an exact email domain match. These claims come from Google's authenticated userinfo response, not the client's fields or login hint. Keep Google's Internal audience configured too.
+
+When the domain is configured, these checks apply to every OAuth login, including existing accounts. A valid first login creates a normal user and directory entry; its email and display name come from Google. Client-supplied IDs, passwords, verification and disabled flags are discarded. Existing accounts keep their IDs and profile values; case-insensitive email matching avoids duplicate identities and rejects ambiguous matches. Direct public REST signup remains blocked: the collection create rule permits only PocketBase's internal OAuth context, and the OAuth hook enforces the domain policy. Every admitted user can access the shared workspace.
+
+If the domain variable is absent, new JIT accounts are rejected and existing preprovisioned OAuth accounts can still sign in. Invalid domain configuration prevents startup. Operators can continue provisioning accounts through the standard records API. Password authentication remains enabled. PocketBase may reset an unverified existing account's password when linking a verified Google identity.
+
+The production deployment uses JIT for `pocketcontext.com`. Alberto's existing account is retained, and his previous startup provisioning requirement is removed. No personal account is hardcoded in the application.
 
 For a client running in an SSH session, open the session with forwarding from your laptop:
 
@@ -88,7 +102,7 @@ python3 skills/taskcontext/scripts/tc.py login --google
 
 Open the printed authorization URL in your laptop's browser and choose the configured Workspace account. The callback travels through SSH to the client's loopback listener; the client checks state, uses PKCE, verifies the returned email, and closes the listener after completion or timeout. No browser is required on the SSH host. When running locally, the same login command works without a tunnel. This uses a direct callback rather than PocketBase's realtime OAuth flow. Login waits up to 180 seconds by default; `--timeout` accepts 1–600 seconds. To use `--port` with another port, register the corresponding redirect URI with Google and change the SSH forwarding port too.
 
-The client privately caches the PocketBase session token, not Google access or refresh tokens. For Google sessions, authenticated commands refresh a still-valid PocketBase token after five minutes or when it is within 60 seconds of expiry, and save its replacement. `whoami` always requests a refresh. Tokens last seven days; after expiry or invalidation, run `login --google` again. The duration applies to newly issued or refreshed tokens; existing tokens retain their original expiry until refreshed. There is no absolute limit on repeated renewal. There is no background refresh. `logout` removes the local cache; it does not invalidate copies elsewhere. Revoking Google consent or suspending a Workspace account does not automatically revoke an already issued PocketBase session. Operators must also revoke TaskContext access, for example by invalidating the user's tokens through a password change. Superuser dashboard authentication remains separate.
+The client privately caches the PocketBase session token, not Google access or refresh tokens. For Google sessions, authenticated commands refresh a still-valid PocketBase token after five minutes or when it is within 60 seconds of expiry, and save its replacement. `whoami` always requests a refresh. Tokens last seven days; after expiry or invalidation, run `login --google` again. The duration applies to newly issued or refreshed tokens; existing tokens retain their original expiry until refreshed. There is no absolute limit on repeated renewal. There is no background refresh. `logout` removes the local cache; it does not invalidate copies elsewhere. Revoking Google consent or suspending a Workspace account does not automatically revoke an already issued PocketBase session. Operators must disable the TaskContext account to block further access and invalidate its tokens. Superuser dashboard authentication remains separate.
 
 ## Data and write rules
 
@@ -115,6 +129,7 @@ The Dockerfile pins PocketContext, base images, and Litestream. It serves port 8
 | `BASE_URL` | Public application origin; also the allowed browser origin. ONCE supplies it. |
 | `TASKCONTEXT_SUPERUSER_EMAIL`, `TASKCONTEXT_SUPERUSER_PASSWORD` | Operator account upserted on container startup; set both together. |
 | `TASKCONTEXT_REQUIRED_USERS` | Optional JSON array of `{email,name}` accounts provisioned on startup and protected from deletion or email changes while configured. |
+| `TASKCONTEXT_GOOGLE_WORKSPACE_DOMAIN` | Optional lowercase Workspace domain enabling Google-only JIT; production uses `pocketcontext.com`. |
 | `TASKCONTEXT_GOOGLE_CLIENT_ID`, `TASKCONTEXT_GOOGLE_CLIENT_SECRET` | Optional Google OAuth provider credentials; set both together. Absent values preserve stored provider configuration. |
 | `TASKCONTEXT_TRUSTED_PROXY_HEADER` | Trusted proxy client-address header; deployment uses `X-Forwarded-For`. |
 | `TASKCONTEXT_RATE_LIMITS` | `true` in the image; `false` disables API limits. |
@@ -150,11 +165,13 @@ python3 tests/integration.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/skill.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/deploy.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/required_users.py --binary ../pocketcontext/bin/pocketcontext
+python3 tests/account_access.py --binary ../pocketcontext/bin/pocketcontext
+python3 tests/realtime_access.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/oauth.py
 python3 tests/oauth_integration.py --binary ../pocketcontext/bin/pocketcontext
 ```
 
-Integration covers concurrent revisions and issue allocation, rejected writes, hierarchy, shared identities, permissions, atomic batches, history, and rollback on audit/directory failures. Skill tests copy the installed skill outside the repository and verify its client, secure cache, and schema contract. Deployment tests check settings, proxy limits, health, and password changes. Required-user tests cover provisioning, preservation, removal protection, recreation after maintenance, and invalid configuration. OAuth tests cover the loopback callback, state and PKCE, private session cache, renewal, and rejected logins; OAuth integration uses a local provider fixture with the pinned server. A real Google Workspace login still requires configured credentials and a human browser.
+Integration covers concurrent revisions and issue allocation, rejected writes, hierarchy, shared identities, permissions, atomic batches, history, and rollback on audit/directory failures. Skill tests copy the installed skill outside the repository and verify its client, secure cache, and schema contract. Deployment tests check settings, proxy limits, health, and password changes. Required-user tests cover provisioning, preservation, removal protection, recreation after maintenance, and invalid configuration. OAuth tests cover the loopback callback, state and PKCE, private session cache, renewal, and rejected logins; OAuth integration uses a local provider fixture with the pinned server. JIT integration also checks hosted-domain validation, forged fields, existing identity preservation, and disabled-account rejection. Account-access and realtime tests verify revocation, re-enabling, blocked deletion and ordinary-user restrictions. A real Google Workspace login still requires configured credentials and a human browser.
 
 With Docker available:
 

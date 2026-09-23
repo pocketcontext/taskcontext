@@ -49,3 +49,7 @@ jobs:
         run: python3 taskcontext/tests/deploy.py --binary pocketcontext/bin/pocketcontext
       - name: Test required user provisioning
         run: python3 taskcontext/tests/required_users.py --binary pocketcontext/bin/pocketcontext
+      - name: Test account access and revocation
+        run: python3 taskcontext/tests/account_access.py --binary pocketcontext/bin/pocketcontext
+      - name: Test realtime revocation
+        run: python3 taskcontext/tests/realtime_access.py --binary pocketcontext/bin/pocketcontext

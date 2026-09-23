@@ -51,7 +51,7 @@ function protect(e, deleting) {
   const email = e.record.original().getString("email");
   if (configured().some((user) => user.email === email.toLowerCase()) &&
       (deleting || email !== e.record.getString("email"))) {
-    throw new ForbiddenError("This account is required by deployment policy; remove it from TASKCONTEXT_REQUIRED_USERS and restart before deleting it or changing its email.");
+    throw new ForbiddenError("This account is required by deployment policy; remove it from TASKCONTEXT_REQUIRED_USERS and restart before changing its email. Disable accounts instead of deleting them.");
   }
   e.next();
 }
