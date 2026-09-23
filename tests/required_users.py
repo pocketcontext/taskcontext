@@ -155,7 +155,7 @@ def main():
             admin = login('_superusers', ADMIN)
             assert len(users(admin)) == 1 and users(admin)[0]['id'] == adopted['id']
             assert users(admin)[0]['name'] == 'Existing member'
-            login('users', EMAIL, PASSWORD)
+            login('users', adopted['email'], PASSWORD)
             request('DELETE', '/api/collections/users/records/' + adopted['id'], token=admin, expected=(400, 403))
             stop()
             start()
