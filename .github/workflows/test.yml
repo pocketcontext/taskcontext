@@ -14,6 +14,8 @@ jobs:
         with:
           path: taskcontext
           persist-credentials: false
+      - name: Test deployment orchestration
+        run: python3 taskcontext/tests/deploy_workflow.py
       - name: Read server revision
         id: server
         shell: bash

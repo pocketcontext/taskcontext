@@ -88,7 +88,17 @@ An empty volume restores the existing replica before the server starts. Restore 
 
 Production deployment uses the existing ONCE host and private `taskcontext-backup` bucket, prefix `once-pocketcontext/taskcontext`. Configuration is recorded in the sibling unversioned `once-pocketcontext/` scaffold; secrets belong in its `.envrc.private`. A public repository does not guarantee a public GHCR package: verify anonymous image pulls before deploying.
 
-Deploy a tested immutable image with automatic updates disabled. ONCE v0.3.3 overlaps old and new containers during ordinary updates; for TaskContext, pull first, gracefully stop its exact existing container, confirm clean exit, then update. Never run two TaskContext servers or Litestream writers against the same volume/replica. Keep sibling applications running. See [deployment record](DEPLOYMENT.md) for the released image and verification.
+Continuous deployment uses `ghcr.io/pocketcontext/taskcontext:latest` after CI passes. ONCE automatic updates remain disabled. ONCE v0.3.3 overlaps old and new containers during ordinary updates; for TaskContext, pull first, gracefully stop its exact existing container, confirm clean exit, then update. Never run two TaskContext servers or Litestream writers against the same volume/replica. Keep sibling applications running. See [deployment record](DEPLOYMENT.md) for the released image and verification.
+
+## Continuous deployment
+
+After tests, restore checks, and publication, `image.yml` deploys when `COLORS_PROFILE=once-pocketcontext`. That GitHub environment supplies the `SSH_PRIVATE_KEY` secret and `SERVER_IP`, `SERVER_USER`, and pinned `SSH_KNOWN_HOSTS` variables. SSH sends no command.
+
+The dedicated deployment key forces `sudo -n /usr/local/sbin/deploy-taskcontext`. The root-owned wrapper takes no arguments, locks deployments, pulls the fixed `latest` image, gracefully stops the exact TaskContext container, and runs `once update tasks.pocketcontext.com --image ghcr.io/pocketcontext/taskcontext:latest --auto-update=false`. It accepts the initial pinned TaskContext image when switching to `latest`. Failed updates recover the old container only when it remains the sole TaskContext container. Deployments briefly interrupt availability.
+
+Install from a trusted copy on the host with `sudo python3 deploy/install.py`. The installer preserves other keys and grants sudo only for this fixed command without arguments. It expects an existing key with either the standard TaskContext forced command or the safe wrapper command. Reinstall it after scaffold provisioning rewrites authorized keys; do not enable CD with the standard overlapping ONCE update command.
+
+Main runs and deploys are serialized without cancelling active deployments. After SSH succeeds, CI checks public `/up`. Health confirms database availability, not the source revision. Run `python3 tests/deploy_workflow.py` to verify ordering, failure recovery, image transition, and key preservation without a live server.
 
 ## Validate
 

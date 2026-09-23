@@ -13,7 +13,7 @@ Deployed on 23 September 2026 at **https://tasks.pocketcontext.com** on the exis
 
 ## Infrastructure
 
-The local unversioned `../once-pocketcontext/colors.yml` pins the image, one CPU, 512 MiB, and the TaskContext environment mappings. Build and dry-run validation passed. A reviewed targeted DNS plan added exactly one proxied A record for `tasks.pocketcontext.com` pointing to the existing host and stored it in the existing DNS backend. No full convergence, compute change, SMTP change, or deployment-key rotation occurred.
+The local unversioned `../once-pocketcontext/colors.yml` follows `ghcr.io/pocketcontext/taskcontext:latest`, names the GitHub repository, and retains one CPU, 512 MiB, and the TaskContext environment mappings. The immutable image above records the initial release. Build and dry-run validation passed. A reviewed targeted DNS plan added exactly one proxied A record for `tasks.pocketcontext.com` pointing to the existing host and stored it in the existing DNS backend. No full convergence, compute change, SMTP change, or deployment-key rotation occurred.
 
 The replica is private bucket `taskcontext-backup`, prefix `once-pocketcontext/taskcontext`, using the existing account's EU R2 endpoint. Authenticated access was verified before deployment, when the prefix was empty. Nonempty Litestream LTX objects were verified after startup. `.envrc.private` contains the operator/R2 variables and is mode 0600. Operator credentials match the existing DealContext operator account as requested; credential values are not stored in this repository.
 
@@ -25,6 +25,12 @@ Verified public HTTPS `/up`, administrator authentication, the application schem
 
 The users and business collections are empty, as expected for this greenfield service. No synthetic records were written to production. Provision ordinary `users` accounts through the standard PocketBase records API or administration dashboard. User operations and recovery behavior were tested in isolated local/CI databases.
 
+## Continuous deployment
+
+A dedicated TaskContext key was added without replacing sibling deployment keys. Its forced command invokes the root-owned `/usr/local/sbin/deploy-taskcontext` wrapper with a narrow sudo permission. GitHub environment `once-pocketcontext` holds the key and pinned server identity; repository variable `COLORS_PROFILE` enables the deploy job.
+
+The restricted SSH path successfully performed the initial controlled switch from the pinned image to `latest`, retaining one CPU, 512 MiB, data volume, environment and replica. ONCE automatic updates remain disabled. The wrapper pulls first, gracefully stops the sole TaskContext container, then updates. Reinstall `deploy/install.py` after any scaffold convergence that regenerates authorized keys. Never print Docker labels or environment metadata.
+
 ## Future updates
 
-Pull the tested new immutable image before stopping anything. Gracefully stop the exact TaskContext container and verify clean exit before `once update tasks.pocketcontext.com --image <digest> --auto-update=false --cpus 1 --memory 512`. ONCE v0.3.3 otherwise overlaps database/Litestream writers. Keep credentials and the replica prefix unchanged. Never run a restored replica beside an active writer. Record the released digest and health verification here after each deployment.
+Normal releases use CD. For manual rollback, pull the recorded immutable image before stopping anything. Gracefully stop the exact TaskContext container and verify clean exit before `once update tasks.pocketcontext.com --image <digest> --auto-update=false --cpus 1 --memory 512`. ONCE v0.3.3 otherwise overlaps database/Litestream writers. Keep credentials and the replica prefix unchanged. Never run a restored replica beside an active writer. Record the released digest and health verification here after each deployment.
