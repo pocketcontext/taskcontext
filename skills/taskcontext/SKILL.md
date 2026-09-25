@@ -7,11 +7,15 @@ description: Operate TaskContext projects and issues through authenticated SQL r
 
 TaskContext is a shared issue tracker. Humans and coding agents use the same `users` identity. Assignment is responsibility, not a privacy boundary: every authenticated user can read and change the shared business records.
 
-Use the portable Python standard-library client `scripts/tc.py` by its full path. The environment must supply `TASKCONTEXT_URL` and `TASKCONTEXT_USER_EMAIL`. Authenticate with `login --google` or supply `TASKCONTEXT_USER_PASSWORD` for password authentication. Use HTTPS except on localhost. If configuration is missing, tell the user which variables to set; do not search files for credentials. Ordinary work requires a user account, never operator credentials. Do not put credentials in commands or responses. Tokens are cached privately in `~/.cache/taskcontext/` (or `XDG_CACHE_HOME`) and removed with `logout`.
+Paths in this skill are relative to the directory containing the installed `SKILL.md`. Resolve the portable Python standard-library client as `<skill-directory>/scripts/tc.py` and invoke it with `python3` using its quoted absolute path; it works from any working directory. Check that exact location before reporting the client missing, including when the skill is installed in a hidden directory such as `.agents/skills/`.
+
+The environment must supply `TASKCONTEXT_URL` and `TASKCONTEXT_USER_EMAIL`. Authenticate with `login --google` or supply `TASKCONTEXT_USER_PASSWORD` for password authentication. Use HTTPS except on localhost. If configuration is missing, tell the user which variables to set; do not search files for credentials. Ordinary work requires a user account, never operator credentials. Do not put credentials in commands or responses. Tokens are cached privately in `~/.cache/taskcontext/` (or `XDG_CACHE_HOME`) and removed with `logout`.
 
 Google login requires the human to open the printed URL. Never request their Google password or client secret. Read the [authentication workflow](references/workflows.md#authentication) for SSH forwarding, setup prerequisites, session renewal, and login failures. After an OAuth session expires, ask the human to run `login --google` again. With Workspace JIT enabled, first login provisions the user. Disabled accounts require operator review; do not attempt to bypass access restrictions.
 
 Start with `whoami` to identify your account and `check` to compare the live schema with the bundled snapshot. Read [schema.md](references/schema.md) before writing or joining tables, [workflows.md](references/workflows.md) for workflow rules and retries, and [examples.md](references/examples.md) for queries and payloads.
+
+In command summaries below and the workflow reference, `tc.py` stands for `python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py"`; substitute the path resolved from this `SKILL.md`.
 
 ```text
 tc.py login --google                     # human completes browser sign-in

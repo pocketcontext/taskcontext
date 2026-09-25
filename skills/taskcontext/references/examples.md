@@ -1,16 +1,16 @@
 # Examples
 
-Use real IDs resolved by SQL in place of placeholders. Shell examples contain trusted static text; serialize retrieved data and pass it on stdin instead of interpolating it.
+Replace `/absolute/path/to/installed/taskcontext` with the directory containing the installed `SKILL.md`, as described in [client setup](../SKILL.md). These commands work from any working directory. Use real IDs resolved by SQL in place of placeholders. Shell examples contain trusted static text; serialize retrieved data and pass it on stdin instead of interpolating it.
 
 ```sh
-python3 scripts/tc.py query 'SELECT id, key, name FROM projects WHERE archived = 0 ORDER BY key LIMIT 100'
-python3 scripts/tc.py query 'SELECT id, name FROM user_directory ORDER BY name, id LIMIT 100'
-python3 scripts/tc.py query 'SELECT id, key, title, status, revision FROM issues ORDER BY updated DESC, id LIMIT 50'
-python3 scripts/tc.py create projects '{"key":"APP","name":"Application"}'
-python3 scripts/tc.py create issues '{"project":"<project-id>","title":"Fix keyboard focus","type":"bug","priority":"high"}'
-python3 scripts/tc.py update issues '<issue-id>' '{"status":"in_progress","expected_revision":1}'
-python3 scripts/tc.py update issues '<issue-id>' '{"status":"done","resolution":"completed","expected_revision":2}'
-python3 scripts/tc.py update issues '<issue-id>' '{"status":"ready","resolution":"","expected_revision":3}'
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" query 'SELECT id, key, name FROM projects WHERE archived = 0 ORDER BY key LIMIT 100'
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" query 'SELECT id, name FROM user_directory ORDER BY name, id LIMIT 100'
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" query 'SELECT id, key, title, status, revision FROM issues ORDER BY updated DESC, id LIMIT 50'
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" create projects '{"key":"APP","name":"Application"}'
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" create issues '{"project":"<project-id>","title":"Fix keyboard focus","type":"bug","priority":"high"}'
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" update issues '<issue-id>' '{"status":"in_progress","expected_revision":1}'
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" update issues '<issue-id>' '{"status":"done","resolution":"completed","expected_revision":2}'
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" update issues '<issue-id>' '{"status":"ready","resolution":"","expected_revision":3}'
 ```
 
 Ready issues without unfinished blockers:

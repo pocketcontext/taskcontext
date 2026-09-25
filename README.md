@@ -57,14 +57,16 @@ Install `skills/taskcontext/` into your coding agent's skills directory, or use 
 npx skills add pocketcontext/taskcontext --skill taskcontext
 ```
 
+In the commands below, replace `/absolute/path/to/installed/taskcontext` with the directory containing your installed `SKILL.md`. Invoke the client by its quoted absolute path from any working directory.
+
 The portable client requires Python 3, `TASKCONTEXT_URL`, and `TASKCONTEXT_USER_EMAIL`, supplied outside source control. For password authentication, also supply `TASKCONTEXT_USER_PASSWORD`:
 
 ```sh
 export TASKCONTEXT_URL=https://tasks.pocketcontext.com
 export TASKCONTEXT_USER_EMAIL=member@example.com
 export TASKCONTEXT_USER_PASSWORD=... # from your secret store
-python3 skills/taskcontext/scripts/tc.py whoami
-python3 skills/taskcontext/scripts/tc.py check
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" whoami
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" check
 ```
 
 For Google authentication, omit the password and follow the Google Workspace setup below.
@@ -97,7 +99,7 @@ Then, on the SSH host:
 ```sh
 export TASKCONTEXT_URL=https://tasks.pocketcontext.com
 export TASKCONTEXT_USER_EMAIL=member@example.com
-python3 skills/taskcontext/scripts/tc.py login --google
+python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" login --google
 ```
 
 Open the printed authorization URL in your laptop's browser and choose the configured Workspace account. The callback travels through SSH to the client's loopback listener; the client checks state, uses PKCE, verifies the returned email, and closes the listener after completion or timeout. No browser is required on the SSH host. When running locally, the same login command works without a tunnel. This uses a direct callback rather than PocketBase's realtime OAuth flow. Login waits up to 180 seconds by default; `--timeout` accepts 1–600 seconds. To use `--port` with another port, register the corresponding redirect URI with Google and change the SSH forwarding port too.
