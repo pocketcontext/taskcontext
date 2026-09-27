@@ -164,6 +164,7 @@ Use the pinned server and isolated temporary databases:
 
 ```sh
 python3 tests/integration.py --binary ../pocketcontext/bin/pocketcontext
+python3 tests/tracing.py --binary /absolute/path/to/pinned/pocketcontext
 python3 tests/skill.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/deploy.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/required_users.py --binary ../pocketcontext/bin/pocketcontext
@@ -185,3 +186,7 @@ python3 docker/smoke.py restore --image taskcontext:ci
 ```
 
 When changing the schema, regenerate and review the snapshot with `python3 tests/skill.py --binary ../pocketcontext/bin/pocketcontext --write-schema`, then update references. Never use local or production `pb_data/` for tests.
+
+## Request observability
+
+The pinned server enables an authenticated, bounded in-memory trace buffer for `taskcontext`. Collection is client opt-in; ordinary commands produce no traces. See [optional skill tracing](skills/taskcontext/references/tracing.md) for separate ObserveContext login, private upload, SQL-text consent, delivery retries and measurement limits. No ObserveContext credentials are installed on this server.

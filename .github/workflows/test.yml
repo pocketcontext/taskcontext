@@ -53,3 +53,5 @@ jobs:
         run: python3 taskcontext/tests/account_access.py --binary pocketcontext/bin/pocketcontext
       - name: Test realtime revocation
         run: python3 taskcontext/tests/realtime_access.py --binary pocketcontext/bin/pocketcontext
+      - name: Test opt-in trace isolation
+        run: python3 taskcontext/tests/tracing.py --binary pocketcontext/bin/pocketcontext
