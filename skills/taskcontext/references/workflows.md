@@ -29,3 +29,7 @@ After a timeout or disconnection during a write, the result is uncertain. Look u
 ## Corrections and history
 
 Correct the requested fields with a revision-checked update. For a withdrawn comment, preserve its issue and replace the body with a clear retraction when authorized. Cancel a mistaken issue with resolution `cancelled`; archive a project when requested. Do not attempt deletion. Query `audit_log` for actor, time, and changes when explaining record history.
+
+## Linking records for humans
+
+Use the configured application origin followed by `/#/<collection>/<record-id>` when referencing a record in wiki content. The reader requires the recipient’s own authorized account. Links show the current record, not an immutable historical snapshot; retain cited evidence in WikiContext when a fixed historical claim is needed. Do not include tokens, protected download URLs, or private record text in link labels intended for a broader audience.

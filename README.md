@@ -1,6 +1,6 @@
 # TaskContext
 
-A shared-workspace issue tracker operated through a coding agent. Projects, issues, dependencies, comments, and evidence live in PocketBase. Agents read context through authenticated SQL and write records through PocketBase REST. Humans and agents authenticate through the same `users` collection. There is no separate agents collection or dedicated frontend.
+A shared-workspace issue tracker operated through a coding agent. Projects, issues, dependencies, comments, and evidence live in PocketBase. Agents read context through authenticated SQL and write records through PocketBase REST. Humans and agents authenticate through the same `users` collection. There is no separate agents collection. An authenticated read-only browser reader is available at `/`.
 
 [PocketContext](https://github.com/pocketcontext/pocketcontext) supplies the server. This repository supplies the application schema, hooks, configuration, tests, container, and [installable skill](skills/taskcontext/SKILL.md). The first version targets a greenfield shared team workspace; it does not import other tools or provide private projects, sprints, custom workflows, notifications, or Jira feature parity.
 
@@ -190,3 +190,47 @@ When changing the schema, regenerate and review the snapshot with `python3 tests
 ## Request observability
 
 The pinned server enables an authenticated, bounded in-memory trace buffer for `taskcontext`. Collection is client opt-in; ordinary commands produce no traces. See [optional skill tracing](skills/taskcontext/references/tracing.md) for separate ObserveContext login, private upload, SQL-text consent, delivery retries and measurement limits. No ObserveContext credentials are installed on this server.
+
+## Browser reader and permanent links
+
+The authenticated reader at `/` provides a collection chooser, server-side text search,
+paginated records, collection-specific filters, and outgoing/reverse relationship links.
+Use `/#/<collection>/<record-id>` for a current-record permalink. Renames preserve this
+identity; deletion or loss of access may make a link unavailable. Search/filter state is
+stored in the hash query, and **Copy record link** omits that state. **Copy search link**
+shares the current collection/filter view. Links do not grant access or preserve history.
+The destination survives password or configured Google sign-in and reload.
+
+Records are read through the existing authenticated SQL endpoint. The browser never
+queries auth collections, writes business records, or acknowledges anything on opening.
+Relationship labels use only authorized SQL; unavailable targets reveal no resolved
+label. User-directory records contain display names only. Tokens are stored per tab in
+session storage, cleared on sign-out; refresh on focus or the **Refresh** button reloads
+current data. Markdown never executes HTML or loads remote images. Record metadata is
+collapsed below business fields. Currency amounts retain their original minor-unit
+values alongside formatted currency. No mixed-currency totals are calculated.
+
+The reader's explicit navigation model lives in `ui/src/config.ts`. Keep its schema
+snapshot aligned with the exported schema when changing columns; `tests/reader.py`
+compares it with the real authenticated schema. The UI is built into the application
+image; for local development build it before starting the ordinary server:
+
+```sh
+cd ui
+pnpm install --frozen-lockfile
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm exec playwright install chromium
+pnpm e2e
+cd ..
+python3 tests/reader.py --binary /absolute/path/to/pinned/pocketcontext --browser
+```
+
+Use Node.js 24 and pnpm 10.33.2. The browser smoke uses synthetic records and an isolated
+temporary database. It tests actual production assets, authentication, direct links,
+reload, search pagination, mobile navigation, and SQL/schema compatibility. Unit and
+mocked browser tests additionally cover query escaping, malformed routes, relationship
+labels, and inert Markdown. Generated assets are not committed.
+For browser Google OAuth, register the application's own
+`https://<application-host>/api/oauth2-redirect` URI in its existing OAuth client.
