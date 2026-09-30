@@ -80,6 +80,8 @@ test("deep link survives sign in, related labels resolve and markdown stays iner
     .getByRole("link", { name: "APP · Example project", exact: true })
     .click();
   await expect(page).toHaveURL(new RegExp("/projects/" + project));
+  await page.goBack();
+  await expect(page.getByRole("heading", {name:"APP-1 · Reader test",exact:true})).toBeVisible();
 });
 test("search is server-paginated and mobile browse is usable", async ({
   page,
@@ -92,6 +94,7 @@ test("search is server-paginated and mobile browse is usable", async ({
   await page.getByRole("button", { name: "Browse", exact: true }).click();
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByText("APP-31 · Last result")).toBeVisible();
+  await page.getByRole("button", {name:"Previous",exact:true}).click();
   await page.getByLabel("Search issues").fill("missing");
   await expect(page.getByText("No matching records.")).toBeVisible();
   expect(
