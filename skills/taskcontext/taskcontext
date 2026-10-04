@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["taskcontext-client @ git+https://github.com/pocketcontext/taskcontext.git@4a89083bc93ca3a2a4c792d1bbd8975bf8446d9b"]
+# dependencies = ["taskcontext-client @ git+https://github.com/pocketcontext/taskcontext.git@36e48a002563af255ebcc10d9d9d3173b2e02a25"]
 # ///
 from taskcontext_client.cli import main
 
