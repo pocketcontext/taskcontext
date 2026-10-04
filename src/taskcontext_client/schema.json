@@ -1,0 +1,307 @@
+{
+  "tables": [
+    {
+      "name": "audit_log",
+      "columns": [
+        {
+          "name": "action",
+          "type": "TEXT"
+        },
+        {
+          "name": "actor",
+          "type": "TEXT"
+        },
+        {
+          "name": "actor_type",
+          "type": "TEXT"
+        },
+        {
+          "name": "changes",
+          "type": "JSON"
+        },
+        {
+          "name": "collection",
+          "type": "TEXT"
+        },
+        {
+          "name": "created",
+          "type": "TEXT"
+        },
+        {
+          "name": "id",
+          "type": "TEXT"
+        },
+        {
+          "name": "record",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "comments",
+      "columns": [
+        {
+          "name": "body",
+          "type": "TEXT"
+        },
+        {
+          "name": "created",
+          "type": "TEXT"
+        },
+        {
+          "name": "created_by",
+          "type": "TEXT"
+        },
+        {
+          "name": "id",
+          "type": "TEXT"
+        },
+        {
+          "name": "issue",
+          "type": "TEXT"
+        },
+        {
+          "name": "revision",
+          "type": "NUMERIC"
+        },
+        {
+          "name": "updated",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated_by",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "issue_links",
+      "columns": [
+        {
+          "name": "active",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "created",
+          "type": "TEXT"
+        },
+        {
+          "name": "created_by",
+          "type": "TEXT"
+        },
+        {
+          "name": "id",
+          "type": "TEXT"
+        },
+        {
+          "name": "revision",
+          "type": "NUMERIC"
+        },
+        {
+          "name": "source",
+          "type": "TEXT"
+        },
+        {
+          "name": "target",
+          "type": "TEXT"
+        },
+        {
+          "name": "type",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated_by",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "issues",
+      "columns": [
+        {
+          "name": "assignee",
+          "type": "TEXT"
+        },
+        {
+          "name": "completed_at",
+          "type": "TEXT"
+        },
+        {
+          "name": "created",
+          "type": "TEXT"
+        },
+        {
+          "name": "created_by",
+          "type": "TEXT"
+        },
+        {
+          "name": "description",
+          "type": "TEXT"
+        },
+        {
+          "name": "id",
+          "type": "TEXT"
+        },
+        {
+          "name": "key",
+          "type": "TEXT"
+        },
+        {
+          "name": "number",
+          "type": "NUMERIC"
+        },
+        {
+          "name": "parent",
+          "type": "TEXT"
+        },
+        {
+          "name": "priority",
+          "type": "TEXT"
+        },
+        {
+          "name": "project",
+          "type": "TEXT"
+        },
+        {
+          "name": "reporter",
+          "type": "TEXT"
+        },
+        {
+          "name": "resolution",
+          "type": "TEXT"
+        },
+        {
+          "name": "revision",
+          "type": "NUMERIC"
+        },
+        {
+          "name": "status",
+          "type": "TEXT"
+        },
+        {
+          "name": "title",
+          "type": "TEXT"
+        },
+        {
+          "name": "type",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated_by",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "projects",
+      "columns": [
+        {
+          "name": "archived",
+          "type": "BOOLEAN"
+        },
+        {
+          "name": "created",
+          "type": "TEXT"
+        },
+        {
+          "name": "created_by",
+          "type": "TEXT"
+        },
+        {
+          "name": "description",
+          "type": "TEXT"
+        },
+        {
+          "name": "id",
+          "type": "TEXT"
+        },
+        {
+          "name": "key",
+          "type": "TEXT"
+        },
+        {
+          "name": "name",
+          "type": "TEXT"
+        },
+        {
+          "name": "revision",
+          "type": "NUMERIC"
+        },
+        {
+          "name": "updated",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated_by",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "references",
+      "columns": [
+        {
+          "name": "created",
+          "type": "TEXT"
+        },
+        {
+          "name": "created_by",
+          "type": "TEXT"
+        },
+        {
+          "name": "id",
+          "type": "TEXT"
+        },
+        {
+          "name": "issue",
+          "type": "TEXT"
+        },
+        {
+          "name": "kind",
+          "type": "TEXT"
+        },
+        {
+          "name": "revision",
+          "type": "NUMERIC"
+        },
+        {
+          "name": "title",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated",
+          "type": "TEXT"
+        },
+        {
+          "name": "updated_by",
+          "type": "TEXT"
+        },
+        {
+          "name": "url",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "user_directory",
+      "columns": [
+        {
+          "name": "id",
+          "type": "TEXT"
+        },
+        {
+          "name": "name",
+          "type": "TEXT"
+        }
+      ]
+    }
+  ]
+}

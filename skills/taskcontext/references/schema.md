@@ -2,7 +2,7 @@
 
 TaskContext uses a shared workspace. All authenticated users can read business data; no private projects are implemented. `users` is the unified auth collection for people and agents, provisioned by an operator and unavailable to SQL. Use `user_directory(id,name)` to resolve identities without exposing auth data.
 
-Business collections have `id`, `created`, `updated`, `created_by`, `updated_by`, and positive integer `revision`. The server sets attribution and revision. Every PATCH requires a transient `expected_revision` equal to the revision from your read; it is not a stored column. IDs are 15 lowercase alphanumeric characters. Check live types and columns with `tc.py schema`.
+Business collections have `id`, `created`, `updated`, `created_by`, `updated_by`, and positive integer `revision`. The server sets attribution and revision. Every PATCH requires a transient `expected_revision` equal to the revision from your read; it is not a stored column. IDs are 15 lowercase alphanumeric characters. Check live types and columns with `taskcontext schema`.
 
 | Collection | Fields |
 | --- | --- |

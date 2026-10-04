@@ -23,7 +23,7 @@ import urllib.error
 import urllib.request
 
 ROOT = Path(__file__).resolve().parent.parent
-TC = ROOT / 'skills' / 'taskcontext' / 'scripts' / 'tc.py'
+TC = ROOT / 'skills' / 'taskcontext' / 'taskcontext'
 # Build the withdrawn community image from pinned upstream sources for CI only.
 MINIO_IMAGE = 'taskcontext-minio-fixture:9e49d5e-7394ce0'
 STOP_LIMIT = 10  # seconds. `docker stop` waits 10 seconds by default before it kills.
@@ -182,7 +182,7 @@ def provision_user(base, token, email, password):
 
 
 class Client:
-    """The skill's tc.py with its own HOME, so every new Client logs in again."""
+    """The skill's taskcontext with its own HOME, so every new Client logs in again."""
 
     def __init__(self, base, email, password, home):
         self.home = Path(home)
@@ -191,12 +191,12 @@ class Client:
         self.env.pop('XDG_CACHE_HOME', None)
 
     def run(self, *args, stdin=None, status=0):
-        say('    $ tc.py ' + ' '.join(args))
+        say('    $ taskcontext ' + ' '.join(args))
         done = subprocess.run([sys.executable, str(TC), *args], env=self.env, input=stdin, text=True, capture_output=True, timeout=120)
         for token in JWT.findall(''.join(path.read_text(errors='replace') for path in self.home.rglob('*') if path.is_file())):
             secret(token)
         if done.returncode != status:
-            raise Failure(f'tc.py {args[0]} exited with status {done.returncode}, expected {status}.\nstdout: {done.stdout}\nstderr: {done.stderr}')
+            raise Failure(f'taskcontext {args[0]} exited with status {done.returncode}, expected {status}.\nstdout: {done.stdout}\nstderr: {done.stderr}')
         return done.stdout
 
     def sql(self, query):
@@ -210,7 +210,7 @@ def write_batch(client, user_id):
         {'method': 'POST', 'url': '/api/collections/projects/records', 'body': {'id': project, 'key': 'IMAGE', 'name': 'Image check project'}},
         {'method': 'POST', 'url': '/api/collections/issues/records', 'body': {'id': issue, 'title': 'Image check issue', 'project': project, 'assignee': user_id}},
     ])))
-    check([entry.get('status') for entry in reply] == [200, 200], 'tc.py batch created a project and issue in one transaction')
+    check([entry.get('status') for entry in reply] == [200, 200], 'taskcontext batch created a project and issue in one transaction')
     return project, issue
 
 
@@ -294,9 +294,9 @@ def smoke(image, tmp, run_id):
     step('provisioning an user and running the skill client against the container')
     user_id = provision_user(base, token, user_email, user_password)
     client = Client(base, user_email, user_password, tmp / 'home-smoke')
-    check(json.loads(client.run('whoami'))['id'] == user_id, 'tc.py whoami logs in and prints the user id')
+    check(json.loads(client.run('whoami'))['id'] == user_id, 'taskcontext whoami logs in and prints the user id')
     client.run('check')
-    check(True, "tc.py check: the image's schema matches the skill's snapshot")
+    check(True, "taskcontext check: the image's schema matches the skill's snapshot")
     project, issue = write_batch(client, user_id)
     check_records(client, project, issue)
 

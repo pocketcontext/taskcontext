@@ -59,19 +59,19 @@ npx skills add pocketcontext/taskcontext --skill taskcontext
 
 In the commands below, replace `/absolute/path/to/installed/taskcontext` with the directory containing your installed `SKILL.md`. Invoke the client by its quoted absolute path from any working directory.
 
-The portable client requires Python 3, `TASKCONTEXT_URL`, and `TASKCONTEXT_USER_EMAIL`, supplied outside source control. For password authentication, also supply `TASKCONTEXT_USER_PASSWORD`:
+The portable client requires uv and Python 3.11 or later, `TASKCONTEXT_URL`, and `TASKCONTEXT_USER_EMAIL`, supplied outside source control. For password authentication, also supply `TASKCONTEXT_USER_PASSWORD`:
 
 ```sh
 export TASKCONTEXT_URL=https://tasks.pocketcontext.com
 export TASKCONTEXT_USER_EMAIL=member@example.com
 export TASKCONTEXT_USER_PASSWORD=... # from your secret store
-python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" whoami
-python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" check
+"/absolute/path/to/installed/taskcontext/taskcontext" whoami
+"/absolute/path/to/installed/taskcontext/taskcontext" check
 ```
 
 For Google authentication, omit the password and follow the Google Workspace setup below.
 
-Use HTTPS except on localhost. The client uses the Python standard library, keeps its token cache private, and never prints credentials. `logout` removes the cached token. `check` compares the live SQL schema with the bundled snapshot. See [schema](skills/taskcontext/references/schema.md), [workflows](skills/taskcontext/references/workflows.md), and [examples](skills/taskcontext/references/examples.md).
+Use HTTPS except on localhost. The client runs its pinned Python package through uv, keeps its token cache private, and never prints credentials. `logout` removes the cached token. `check` compares the live SQL schema with the bundled snapshot. See [schema](skills/taskcontext/references/schema.md), [workflows](skills/taskcontext/references/workflows.md), and [examples](skills/taskcontext/references/examples.md).
 
 ## Google Workspace authentication
 
@@ -99,7 +99,7 @@ Then, on the SSH host:
 ```sh
 export TASKCONTEXT_URL=https://tasks.pocketcontext.com
 export TASKCONTEXT_USER_EMAIL=member@example.com
-python3 "/absolute/path/to/installed/taskcontext/scripts/tc.py" login --google
+"/absolute/path/to/installed/taskcontext/taskcontext" login --google
 ```
 
 Open the printed authorization URL in your laptop's browser and choose the configured Workspace account. The callback travels through SSH to the client's loopback listener; the client checks state, uses PKCE, verifies the returned email, and closes the listener after completion or timeout. No browser is required on the SSH host. When running locally, the same login command works without a tunnel. This uses a direct callback rather than PocketBase's realtime OAuth flow. Login waits up to 180 seconds by default; `--timeout` accepts 1–600 seconds. To use `--port` with another port, register the corresponding redirect URI with Google and change the SSH forwarding port too.
@@ -243,3 +243,9 @@ mocked browser tests additionally cover query escaping, malformed routes, relati
 labels, and inert Markdown. Generated assets are not committed.
 For browser Google OAuth, register the application's own
 `https://<application-host>/api/oauth2-redirect` URI in its existing OAuth client.
+
+## Packaged CLI development
+
+Install uv, then run `uv venv` and `uv pip install -e .`. Activate `.venv` before running the Python validation commands above. The full-name command is `taskcontext`; old script paths and short aliases are removed. The installed skill launcher requires uv and Python 3.11 or later and fetches its package at a full Git commit. Initial installation requires network access.
+
+The implementation and bundled schema live in `src/taskcontext_client/`; keep its schema snapshot identical to `skills/taskcontext/references/schema.json`. Publish and test the package commit before updating the launcher to that commit. The ObserveContext dependency is pinned separately. Tracing is inactive unless explicitly enabled by `observecontext capture -- taskcontext ...`; capture failures must preserve the command result.

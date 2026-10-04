@@ -1,0 +1,9 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["taskcontext-client @ git+https://github.com/pocketcontext/taskcontext.git@0ea79f1b4a621a2183aebe27381c3a23ab52646d"]
+# ///
+from taskcontext_client.cli import main
+
+if __name__ == "__main__":
+    raise SystemExit(main())

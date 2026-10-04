@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Test the installable skill in skills/taskcontext; no third-party Python dependencies.
+"""Test the installable skill in skills/taskcontext; requires the installed client package.
 
   python3 tests/skill.py --binary /path/to/pocketcontext
   python3 tests/skill.py --binary /path/to/pocketcontext --write-schema
 
 The first form checks the skill's files, then copies the skill outside the repository and runs its
-scripts/tc.py against a temporary server. The second form rewrites skills/taskcontext/references/schema.json
+taskcontext against a temporary server. The second form rewrites skills/taskcontext/references/schema.json
 from a temporary server; run it after a migration changes the SQL-readable tables or columns.
 """
 import argparse
@@ -102,7 +102,8 @@ def main():
         with task_server(str(Path(args.binary).resolve()), tmp) as (base, user):
             installed = tmp / 'installed'
             shutil.copytree(SKILL, installed)
-            script = installed / 'scripts/tc.py'
+            shutil.copytree(ROOT / 'src/taskcontext_client', installed / 'taskcontext_client', ignore=shutil.ignore_patterns('__pycache__'))
+            script = installed / 'taskcontext'
             environment = {'PATH': os.environ.get('PATH', ''), 'HOME': str(tmp / 'home'), 'XDG_CACHE_HOME': str(tmp / 'cache'),
                            'TASKCONTEXT_URL': base, 'TASKCONTEXT_USER_EMAIL': EMAIL, 'TASKCONTEXT_USER_PASSWORD': PASSWORD}
             outputs = []
@@ -119,6 +120,7 @@ def main():
                 schema = data('schema')
                 snapshot = {'tables': sorted([{'name': t['name'], 'columns': sorted(t['columns'], key=lambda c:c['name'])} for t in schema['tables']], key=lambda t:t['name'])}
                 (SKILL / 'references/schema.json').write_text(json.dumps(snapshot, indent=2) + '\n')
+                (ROOT / 'src/taskcontext_client/schema.json').write_text(json.dumps(snapshot, indent=2) + '\n')
                 print('Wrote schema snapshot from isolated server')
                 return
             for key in ('TASKCONTEXT_URL','TASKCONTEXT_USER_EMAIL','TASKCONTEXT_USER_PASSWORD'):
@@ -137,7 +139,7 @@ def main():
             token = json.loads(session_file.read_text())['token']
             assert data('whoami',TASKCONTEXT_USER_PASSWORD='bad')['id'] == user['id']
             assert run('check')[0].startswith('OK')
-            snapshot = installed/'references/schema.json'
+            snapshot = installed/'taskcontext_client/schema.json'
             original = snapshot.read_text(); snapshot.write_text('{"tables":[]}')
             assert 'projects' in run('check',expected=3)[0]; snapshot.write_text(original)
             names = {t['name'] for t in data('schema')['tables']}
