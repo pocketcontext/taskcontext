@@ -95,6 +95,7 @@ def task_server(binary, tmp):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--binary', required=True)
+    parser.add_argument('--client', help='Executable release launcher to exercise; package mutation checks still use the local test copy')
     parser.add_argument('--write-schema', action='store_true')
     args = parser.parse_args()
     with tempfile.TemporaryDirectory(prefix='taskcontext-skill-') as temporary:
@@ -105,11 +106,13 @@ def main():
             shutil.copytree(ROOT / 'src/taskcontext_client', installed / 'taskcontext_client', ignore=shutil.ignore_patterns('__pycache__'))
             script = installed / 'taskcontext'
             environment = {'PATH': os.environ.get('PATH', ''), 'HOME': str(tmp / 'home'), 'XDG_CACHE_HOME': str(tmp / 'cache'),
-                           'TASKCONTEXT_URL': base, 'TASKCONTEXT_USER_EMAIL': EMAIL, 'TASKCONTEXT_USER_PASSWORD': PASSWORD}
+                           'UV_PYTHON': sys.executable, 'UV_CACHE_DIR': str(tmp / 'uv-cache'), 'TASKCONTEXT_URL': base, 'TASKCONTEXT_USER_EMAIL': EMAIL, 'TASKCONTEXT_USER_PASSWORD': PASSWORD}
             outputs = []
             def run(*arguments, expected=0, stdin=None, **overrides):
+                local = overrides.pop('_local', False)
                 env = {k:v for k,v in {**environment, **overrides}.items() if v is not None}
-                result = subprocess.run([sys.executable, str(script), *arguments], cwd=tmp, env=env,
+                command = [str(Path(args.client).resolve())] if args.client and not local else [sys.executable, str(script)]
+                result = subprocess.run([*command, *arguments], cwd=tmp, env=env,
                                         input=stdin, text=True, capture_output=True, timeout=30)
                 assert result.returncode == expected, (arguments, result.returncode, result.stdout, result.stderr)
                 outputs.append(result.stdout + result.stderr)
@@ -141,7 +144,7 @@ def main():
             assert run('check')[0].startswith('OK')
             snapshot = installed/'taskcontext_client/schema.json'
             original = snapshot.read_text(); snapshot.write_text('{"tables":[]}')
-            assert 'projects' in run('check',expected=3)[0]; snapshot.write_text(original)
+            assert 'projects' in run('check',expected=3,_local=True)[0]; snapshot.write_text(original)
             names = {t['name'] for t in data('schema')['tables']}
             assert 'users' not in names and {'issues','projects','user_directory','audit_log'} <= names
             project = data('create','projects','-',stdin='{"key":"SKILL","name":"Skill test"}')
