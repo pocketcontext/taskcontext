@@ -251,3 +251,36 @@ Install uv, then run `uv venv` and `uv pip install -e .`. Activate `.venv` befor
 The implementation and bundled schema live in `src/taskcontext_client/`; keep its schema snapshot identical to `skills/taskcontext/references/schema.json`. Publish and test the package commit before updating the launcher to that commit. The ObserveContext dependency is pinned separately. Tracing is inactive unless explicitly enabled by `observecontext capture -- taskcontext ...`; capture failures must preserve the command result.
 
 For a released launcher, run `python3 tests/skill.py --binary /absolute/path/to/pinned/pocketcontext --client /absolute/path/to/copied/taskcontext`. This uses a fresh uv cache and isolated synthetic records. Put the real uv binary on `PATH` when a version-manager shim depends on `HOME`; authentication tests deliberately use temporary home directories. Source/schema mutation checks use a private package copy.
+
+## Runtime maintenance freeze
+
+Superusers inspect `GET /api/context/maintenance` and toggle with
+`PUT /api/context/maintenance` using `{"readOnly":true,"expectedGeneration":N}`.
+Use the returned generation; wait for confirmed `read_only` before taking a final
+migration snapshot. Active writes drain, subsequent mutations return 503, and
+authorized SQL reads and original downloads remain available. Existing sessions
+can refresh; login flows requiring writes may fail. Thaw explicitly with
+`readOnly:false` and the current generation. Stale generations return 409.
+
+The private `pb_data/maintenance.json` marker must travel with a recovery snapshot.
+Frozen startup preserves the existing database, settings, OAuth identities and
+operator credentials; it skips restore and bootstrap provisioning and refuses
+missing databases, unsafe markers or pending migrations. This is not cross-host
+fencing: pause CD and stop/disable the source writer before activating a replacement.
+
+Release gates use synthetic data:
+
+```sh
+python3 tests/maintenance_entrypoint.py
+python3 tests/maintenance.py --binary /absolute/path/to/pinned/pocketcontext
+```
+
+Maintenance tests also verify that a frozen restart does not provision newly
+configured required users, existing operator/user tokens survive, pending migrations
+fail, and rejected issue creation does not consume the next issue number. The
+server maintenance suite covers in-flight write draining and managed SQLite guards.
+
+Replicated startup waits for an initial Litestream IPC sync before serving. An
+unreachable replica fails startup. Fresh Google-only databases are initialized
+before this handshake; frozen starts always require the existing database. This
+ensures clean shutdown can sync even before the first periodic monitor tick.

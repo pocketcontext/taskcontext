@@ -54,6 +54,7 @@ onRecordCreateExecute((e) => {
                         time.sleep(.1)
                 else: raise AssertionError('Server startup timed out')
                 request.base_url = f'http://127.0.0.1:{port}'
+                request.data_dir = Path(tmp)/'pb_data'
                 yield request
             finally:
                 proc.terminate();proc.wait(timeout=15)
