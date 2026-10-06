@@ -1,5 +1,7 @@
 # TaskContext
 
+Current release controls and platform coverage: [common CI and deployment contract](docs/ci-and-deployment.md).
+
 A shared-workspace issue tracker operated through a coding agent. Projects, issues, dependencies, comments, and evidence live in PocketBase. Agents read context through authenticated SQL and write records through PocketBase REST. Humans and agents authenticate through the same `users` collection. There is no separate agents collection. An authenticated read-only browser reader is available at `/`.
 
 [PocketContext](https://github.com/pocketcontext/pocketcontext) supplies the server. This repository supplies the application schema, hooks, configuration, tests, container, and [installable skill](skills/taskcontext/SKILL.md). The first version targets a greenfield shared team workspace; it does not import other tools or provide private projects, sprints, custom workflows, notifications, or Jira feature parity.
@@ -144,25 +146,20 @@ The Dockerfile pins PocketContext, base images, and Litestream. It serves port 8
 
 An empty volume must restore an existing replica before the server starts. A missing or inaccessible replica stops startup. A fresh install requires a one-shot `docker run --rm` with the same environment, network and `/storage` volume and the image command `init`; it refuses any existing local state or replica. Start normally afterward to begin replication. Failed initialization leaves a durable marker and requires operator recovery into a fresh volume. The backup includes account hashes and any stored SMTP or OAuth provider credentials, so the bucket must remain private. No issue attachments are implemented, but recovery inventories every file field in the actual PocketBase schema, including user avatars. It streams each referenced S3 object and verifies complete readability and response length; there is no authoritative checksum for cryptographic comparison. Recovery stages and checks SQLite and files before atomically installing the database. Frozen starts require matching persisted S3 settings and an existing valid `auxiliary.db`.
 
-Production deployment uses the existing ONCE host and private `taskcontext-backup` bucket, prefix `once-pocketcontext/taskcontext`. Configuration is recorded in the sibling unversioned `once-pocketcontext/` scaffold; secrets belong in its `.envrc.private`. A public repository does not guarantee a public GHCR package: verify anonymous image pulls before deploying.
-
-Continuous deployment uses `ghcr.io/pocketcontext/taskcontext:latest` after CI passes. ONCE automatic updates remain disabled. ONCE v0.3.3 overlaps old and new containers during ordinary updates; for TaskContext, pull first, gracefully stop its exact existing container, confirm clean exit, then update. Never run two TaskContext servers or Litestream writers against the same volume/replica. Keep sibling applications running. See [deployment record](DEPLOYMENT.md) for the released image and verification.
+Production runs through the maintained `once-pocketcontext-v2` scaffold with
+separate `taskcontext-files` and `taskcontext-replica` buckets. Keep credentials
+in that scaffold's ignored private configuration. Public image pulls are required
+by the commandless shared deployment dispatcher.
 
 ## Continuous deployment
 
-After tests, restore checks, and publication, `image.yml` deploys when `COLORS_PROFILE=once-pocketcontext` and `CONTEXT_DEPLOY_PAUSED` is not `true`. That GitHub environment supplies the `SSH_PRIVATE_KEY` secret and `SERVER_IP`, `SERVER_USER`, and pinned `SSH_KNOWN_HOSTS` variables. SSH sends no command.
-
-The dedicated deployment key forces `sudo -n /usr/local/sbin/deploy-taskcontext`. The root-owned wrapper takes no arguments, locks deployments, pulls the fixed `latest` image, gracefully stops the exact TaskContext container, and runs `once update tasks.pocketcontext.com --image ghcr.io/pocketcontext/taskcontext:latest --auto-update=false`. It accepts the initial pinned TaskContext image when switching to `latest`. Failed updates recover the old container only when it remains the sole TaskContext container. Deployments briefly interrupt availability.
-
-Set the repository Actions variable `CONTEXT_DEPLOY_PAUSED=true` before publishing
-a release that must not deploy. This blocks the deployment job while preserving
-the configured profile and allowing build, test and image publication. Keep it
-set until deployment is explicitly authorized; it does not stop an already
-running deployment or fence writers on another host.
-
-Install from a trusted copy on the host with `sudo python3 deploy/install.py`. The installer preserves other keys and grants sudo only for this fixed command without arguments. It expects an existing key with either the standard TaskContext forced command or the safe wrapper command. Reinstall it after scaffold provisioning rewrites authorized keys; do not enable CD with the standard overlapping ONCE update command.
-
-Main runs and deploys are serialized without cancelling active deployments. After SSH succeeds, CI checks public `/up`. Health confirms database availability, not the source revision. Run `python3 tests/deploy_workflow.py` to verify ordering, failure recovery, image transition, and key preservation without a live server.
+The main-only `once-v2` GitHub environment supplies the dedicated restricted SSH
+key and pinned host identity. `CONTEXT_DEPLOY_PAUSED=true` pauses deployment while
+validation and publication continue. App-local installers and wrappers are retired.
+The maintained shared dispatcher locks the target, resolves an immutable image,
+stops the sole writer with a 300-second timeout and preserves volumes. There is
+no automatic rollback; inspect pending state before any retry. See the
+[common CI and deployment contract](docs/ci-and-deployment.md).
 
 ## Validate
 
