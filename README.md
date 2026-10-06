@@ -150,9 +150,15 @@ Continuous deployment uses `ghcr.io/pocketcontext/taskcontext:latest` after CI p
 
 ## Continuous deployment
 
-After tests, restore checks, and publication, `image.yml` deploys when `COLORS_PROFILE=once-pocketcontext`. That GitHub environment supplies the `SSH_PRIVATE_KEY` secret and `SERVER_IP`, `SERVER_USER`, and pinned `SSH_KNOWN_HOSTS` variables. SSH sends no command.
+After tests, restore checks, and publication, `image.yml` deploys when `COLORS_PROFILE=once-pocketcontext` and `CONTEXT_DEPLOY_PAUSED` is not `true`. That GitHub environment supplies the `SSH_PRIVATE_KEY` secret and `SERVER_IP`, `SERVER_USER`, and pinned `SSH_KNOWN_HOSTS` variables. SSH sends no command.
 
 The dedicated deployment key forces `sudo -n /usr/local/sbin/deploy-taskcontext`. The root-owned wrapper takes no arguments, locks deployments, pulls the fixed `latest` image, gracefully stops the exact TaskContext container, and runs `once update tasks.pocketcontext.com --image ghcr.io/pocketcontext/taskcontext:latest --auto-update=false`. It accepts the initial pinned TaskContext image when switching to `latest`. Failed updates recover the old container only when it remains the sole TaskContext container. Deployments briefly interrupt availability.
+
+Set the repository Actions variable `CONTEXT_DEPLOY_PAUSED=true` before publishing
+a release that must not deploy. This blocks the deployment job while preserving
+the configured profile and allowing build, test and image publication. Keep it
+set until deployment is explicitly authorized; it does not stop an already
+running deployment or fence writers on another host.
 
 Install from a trusted copy on the host with `sudo python3 deploy/install.py`. The installer preserves other keys and grants sudo only for this fixed command without arguments. It expects an existing key with either the standard TaskContext forced command or the safe wrapper command. Reinstall it after scaffold provisioning rewrites authorized keys; do not enable CD with the standard overlapping ONCE update command.
 

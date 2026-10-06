@@ -22,6 +22,15 @@ installer = load("installer", "install.py")
 
 
 class DeploymentTests(unittest.TestCase):
+    def test_repository_pause_blocks_deployment_with_profile_preserved(self):
+        workflow = (ROOT / '.github/workflows/image.yml').read_text()
+        deploy = workflow.split('  deploy:\n', 1)[1]
+        condition = deploy.splitlines()[0].strip()
+        self.assertEqual(condition,
+            "if: vars.CONTEXT_DEPLOY_PAUSED != 'true' && vars.COLORS_PROFILE != ''")
+        self.assertIn('      - manifest', deploy)
+        self.assertIn('name: ${{ vars.COLORS_PROFILE }}', deploy)
+
     def run_hook(self, fail=None, killed=False, count=1, recovery_count=None, image=None):
         calls = []
         inspections = 0
