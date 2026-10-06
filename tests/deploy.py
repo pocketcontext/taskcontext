@@ -381,9 +381,9 @@ def main():
                                   ('missing-id', {'TASKCONTEXT_GOOGLE_CLIENT_SECRET': 'SecretMustNotBeLogged'}),
                                   ('blank-secret', {'TASKCONTEXT_GOOGLE_CLIENT_ID': 'test', 'TASKCONTEXT_GOOGLE_CLIENT_SECRET': '   '})]:
                 if name != 'blank-secret':
-                    entry = subprocess.run(['sh', str(ROOT / 'docker/entrypoint.sh')], env={**clean, **invalid},
+                    entry = subprocess.run(['python3', str(ROOT / 'docker/entrypoint.py')], env={**clean, **invalid},
                                            capture_output=True, text=True, timeout=5)
-                    assert entry.returncode != 0 and 'requires TASKCONTEXT_GOOGLE_' in entry.stderr
+                    assert entry.returncode != 0 and 'must be set together' in entry.stderr
                     assert 'SecretMustNotBeLogged' not in entry.stdout + entry.stderr
                 result = subprocess.run(common + ['serve', '--http', f'127.0.0.1:{free_port()}'], cwd=ROOT,
                                         env={**clean, **invalid}, capture_output=True, text=True, timeout=15)

@@ -124,7 +124,7 @@ API writes record their actor and changes in the same transaction as the record.
 
 ## Container and deployment
 
-The Dockerfile pins PocketContext, base images, and Litestream. It serves port 80 and database-backed `GET /up`; all state is in `/storage/pb_data`. CI tests startup failures, normal persistence, and restoration from a disposable S3-compatible replica before publishing native AMD64/ARM64 images to `ghcr.io/pocketcontext/taskcontext`.
+The Dockerfile pins PocketContext, base images, and Litestream. It serves port 80 and database-backed `GET /up`; SQLite and local maintenance state are in `/storage/pb_data`; primary files are in S3. CI tests startup failures, normal persistence, and restoration from a disposable S3-compatible replica before publishing native AMD64/ARM64 images to `ghcr.io/pocketcontext/taskcontext`.
 
 | Variable | Purpose |
 | --- | --- |
@@ -139,10 +139,10 @@ The Dockerfile pins PocketContext, base images, and Litestream. It serves port 8
 | `LITESTREAM_ACCESS_KEY_ID`, `LITESTREAM_SECRET_ACCESS_KEY` | Credentials for that replica. |
 | `LITESTREAM_REGION`, `LITESTREAM_ENDPOINT` | S3 region and optional custom endpoint; R2 uses `auto`. |
 | `LITESTREAM_SYNC_INTERVAL` | Replication interval, default `10s`. |
-| `LITESTREAM_DISABLED` | Exactly `true` disables replication for disposable local tests. |
+| `LITESTREAM_DISABLED` | Unsupported in the production image; replication is mandatory. |
 | `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `MAILER_FROM_ADDRESS` | Optional PocketBase mail settings supplied by ONCE. |
 
-An empty volume restores the existing replica before the server starts. Restore errors stop startup. The backup includes account hashes and any stored SMTP or OAuth provider credentials, so the bucket must remain private. No file attachments are implemented.
+An empty volume must restore an existing replica before the server starts. A missing or inaccessible replica stops startup. A fresh install requires a one-shot `docker run --rm` with the same environment, network and `/storage` volume and the image command `init`; it refuses any existing local state or replica. Start normally afterward to begin replication. Failed initialization leaves a durable marker and requires operator recovery into a fresh volume. The backup includes account hashes and any stored SMTP or OAuth provider credentials, so the bucket must remain private. No issue attachments are implemented, but recovery inventories every file field in the actual PocketBase schema, including user avatars. It streams each referenced S3 object and verifies complete readability and response length; there is no authoritative checksum for cryptographic comparison. Recovery stages and checks SQLite and files before atomically installing the database. Frozen starts require matching persisted S3 settings and an existing valid `auxiliary.db`.
 
 Production deployment uses the existing ONCE host and private `taskcontext-backup` bucket, prefix `once-pocketcontext/taskcontext`. Configuration is recorded in the sibling unversioned `once-pocketcontext/` scaffold; secrets belong in its `.envrc.private`. A public repository does not guarantee a public GHCR package: verify anonymous image pulls before deploying.
 
@@ -277,7 +277,7 @@ fencing: pause CD and stop/disable the source writer before activating a replace
 Release gates use synthetic data:
 
 ```sh
-python3 tests/maintenance_entrypoint.py
+python3 tests/entrypoint.py
 python3 tests/maintenance.py --binary /absolute/path/to/pinned/pocketcontext
 ```
 
@@ -287,7 +287,7 @@ fail, and rejected issue creation does not consume the next issue number. The
 server maintenance suite covers in-flight write draining and managed SQLite guards.
 
 Replicated startup waits for an initial Litestream IPC sync before serving. An
-unreachable replica fails startup. Fresh Google-only databases are initialized
+unreachable replica fails startup. Fresh Google-only databases require explicit `init`
 before this handshake; frozen starts always require the existing database. This
 ensures clean shutdown can sync even before the first periodic monitor tick.
 
@@ -302,7 +302,8 @@ endpoint. Optional `TASKCONTEXT_S3_FORCE_PATH_STYLE` is exactly `true` or
 credentials. A writable restart with stored S3 enabled requires explicit complete
 configuration, preventing accidental fallback to local disk. File credentials must
 be scoped to the primary bucket; Litestream uses a different bucket and key.
-With S3 unconfigured and disabled, existing local development behavior is preserved.
+The production container requires complete S3 settings. Direct local development
+with the server binary can still use local file storage.
 
 These credentials and the primary file bucket are separate from the
 `LITESTREAM_*` SQLite replica configuration. This application currently has no
@@ -311,15 +312,15 @@ as the default user avatar. It does not add attachment APIs or change file acces
 rules. Buckets must remain private and downloads go through PocketBase.
 
 Frozen startup requires complete S3 configuration matching stored settings,
-including credentials, and rejects changes before serving. Local frozen starts
-remain supported when S3 is disabled. Container preflight rejects partial settings
+including credentials, and rejects changes before serving. Direct development-server frozen starts can use local files; the production
+container always requires S3. Container preflight rejects partial settings
 and sharing either the primary file bucket or access key with Litestream.
 Enabling S3 does not copy existing files: reconcile every referenced object and
 its checksum before switching a production database. Preserve the maintenance
 marker and stop the old writer before thawing the replacement. Litestream
 replicates SQLite, not primary bucket contents; plan file retention independently.
-These changes are preparation only: they have not been deployed, and existing
-files and production databases have not been migrated.
+This container startup refactor has not been deployed. It does not migrate
+existing files or production databases.
 
 Validate the configuration and frozen-restart contract with:
 
