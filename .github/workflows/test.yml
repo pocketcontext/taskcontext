@@ -58,6 +58,10 @@ jobs:
         run: python3 taskcontext/tests/oauth_integration.py --binary pocketcontext/bin/pocketcontext
       - name: Test deployment hooks
         run: python3 taskcontext/tests/deploy.py --binary pocketcontext/bin/pocketcontext
+      - name: Recovery comparison safety
+        run: python3 taskcontext/tests/recovery_compare.py
+      - name: Primary file storage configuration
+        run: python3 taskcontext/tests/object_storage.py --binary pocketcontext/bin/pocketcontext
       - name: Test required user provisioning
         run: python3 taskcontext/tests/required_users.py --binary pocketcontext/bin/pocketcontext
       - name: Test account access and revocation
