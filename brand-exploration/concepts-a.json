@@ -1,0 +1,240 @@
+[
+  {
+    "id": 1,
+    "name": "Confident check",
+    "family": "Checks & completion",
+    "description": "Confident check: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M18 64L34 48 54 68 94 24 112 40 54 106Z\" fill=\"currentColor\" stroke=\"none\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 2,
+    "name": "Open checkbox",
+    "family": "Checks & completion",
+    "description": "Open checkbox: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M108 70V108H20V20H80 M40 60L60 80 108 30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 3,
+    "name": "Checked corner",
+    "family": "Checks & completion",
+    "description": "Checked corner: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M24 100V24H96 M46 66L64 84 108 36 M78 108H108V78\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 4,
+    "name": "Tick tile",
+    "family": "Checks & completion",
+    "description": "Tick tile: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M30 18H98Q110 18 110 30V98Q110 110 98 110H30Q18 110 18 98V30Q18 18 30 18Z M40 64L56 80 90 44\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 5,
+    "name": "Double done",
+    "family": "Checks & completion",
+    "description": "Double done: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M18 60L36 78 64 42 M56 82L72 98 110 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 6,
+    "name": "Done orbit",
+    "family": "Checks & completion",
+    "description": "Done orbit: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M64 18A46 46 0 1 0 110 64 M40 60L60 80 104 28\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 7,
+    "name": "Check fold",
+    "family": "Checks & completion",
+    "description": "Check fold: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M22 22H78L106 50V106H22Z M78 22V50H106 M40 70L56 86 82 60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 8,
+    "name": "Completion diamond",
+    "family": "Checks & completion",
+    "description": "Completion diamond: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M64 16L112 64 64 112 16 64Z M40 60L58 78 88 46\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 9,
+    "name": "Bold resolution",
+    "family": "Checks & completion",
+    "description": "Bold resolution: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M20 30H42V84H94V106H20Z M46 56L62 72 96 30 112 44 64 102 32 70Z\" fill=\"currentColor\" stroke=\"none\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 10,
+    "name": "Next tick",
+    "family": "Checks & completion",
+    "description": "Next tick: a decisive completion gesture designed to stay clear at favicon size.",
+    "body": "<path d=\"M20 24H74 M20 48H54 M20 72H36 M44 88L62 106 108 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 11,
+    "name": "Dependency fork",
+    "family": "Dependencies & links",
+    "description": "Dependency fork: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M64 20V48 M28 82V48H100V82 M18 84H38V108H18Z M90 84H110V108H90Z M52 18H76V38H52Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 12,
+    "name": "Linked steps",
+    "family": "Dependencies & links",
+    "description": "Linked steps: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M20 20H48V48H20Z M80 80H108V108H80Z M48 34H94V80 M34 48V94H80\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 13,
+    "name": "Blocker bridge",
+    "family": "Dependencies & links",
+    "description": "Blocker bridge: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M20 24H54V58H20Z M74 70H108V104H74Z M54 42H92V70 M36 58V86H60\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 14,
+    "name": "Resolved chain",
+    "family": "Dependencies & links",
+    "description": "Resolved chain: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M28 32H62V66H28Z M66 62H100V96H66Z M44 84L54 94 84 34\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 15,
+    "name": "Epic branches",
+    "family": "Dependencies & links",
+    "description": "Epic branches: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M52 20H76V44H52Z M64 44V62 M26 82V62H102V82 M18 84H36V108H18Z M54 84H74V108H54Z M92 84H110V108H92Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 16,
+    "name": "Dependency ladder",
+    "family": "Dependencies & links",
+    "description": "Dependency ladder: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M24 20V106 M104 20V106 M24 34H76 M52 64H104 M24 94H76 M76 24V44 M52 54V74 M76 84V104\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 17,
+    "name": "Shared prerequisite",
+    "family": "Dependencies & links",
+    "description": "Shared prerequisite: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M20 24H46V50H20Z M82 24H108V50H82Z M33 50V70H95V50 M64 70V84 M50 84H78V110H50Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 18,
+    "name": "Flow junction",
+    "family": "Dependencies & links",
+    "description": "Flow junction: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M22 20V48H64V104 M106 20V48H64 M48 88L64 104 80 88 M22 80H40 M88 80H106\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 19,
+    "name": "Linked diamonds",
+    "family": "Dependencies & links",
+    "description": "Linked diamonds: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M36 18L58 40 36 62 14 40Z M92 66L114 88 92 110 70 88Z M58 40H92V66 M36 62V88H70\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 20,
+    "name": "Ready chain",
+    "family": "Dependencies & links",
+    "description": "Ready chain: tasks connected in a visible order, with branches that resolve into shared work.",
+    "body": "<path d=\"M24 22H50V48H24Z M78 22H104V48H78Z M50 35H78 M92 48V74H38V98 M22 88L38 104 54 88\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 21,
+    "name": "Three lanes",
+    "family": "Boards & queues",
+    "description": "Three lanes: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M22 22V106 M64 22V106 M106 22V106 M34 34H52V60H34Z M76 34H94V84H76Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 22,
+    "name": "Moving card",
+    "family": "Boards & queues",
+    "description": "Moving card: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M20 22H108V106H20Z M50 22V106 M80 22V106 M28 36H40 M58 58H72 M88 84H100\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 23,
+    "name": "Ready stack",
+    "family": "Boards & queues",
+    "description": "Ready stack: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M28 20H100V42H28Z M28 54H100V76H28Z M28 88H72V110H28Z M86 96L96 106 110 86\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 24,
+    "name": "Queue arrow",
+    "family": "Boards & queues",
+    "description": "Queue arrow: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M20 28H70 M20 52H58 M20 76H46 M20 100H34 M82 30V100 M64 82L82 100 100 82\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 25,
+    "name": "Kanban rhythm",
+    "family": "Boards & queues",
+    "description": "Kanban rhythm: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M20 22H42V106H20Z M54 22H76V78H54Z M88 22H110V50H88Z\" fill=\"currentColor\" stroke=\"none\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 26,
+    "name": "Card crossing",
+    "family": "Boards & queues",
+    "description": "Card crossing: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M20 22H60V70H20Z M68 58H108V106H68Z M82 22H108V42 M20 88V106H46\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 27,
+    "name": "Open board",
+    "family": "Boards & queues",
+    "description": "Open board: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M20 100V28H108V100 M20 48H108 M48 48V100 M78 48V100 M30 64H38 M58 80H68 M88 64H98\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 28,
+    "name": "Work tiles",
+    "family": "Boards & queues",
+    "description": "Work tiles: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M20 20H58V58H20Z M70 20H108V42H70Z M70 54H108V108H70Z M20 70H58V108H20Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 29,
+    "name": "Stage cards",
+    "family": "Boards & queues",
+    "description": "Stage cards: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M18 24H46V62H18Z M50 46H78V84H50Z M82 68H110V106H82Z M82 26H110 M18 102H46\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 30,
+    "name": "Priority queue",
+    "family": "Boards & queues",
+    "description": "Priority queue: a concise view of work distributed across stages and ready for the next action.",
+    "body": "<path d=\"M24 22H106V44H24Z M24 60H88V82H24Z M24 98H66 M20 22V108\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 31,
+    "name": "Project canopy",
+    "family": "Projects & structure",
+    "description": "Project canopy: a stable project structure that gives individual tasks a recognizable home.",
+    "body": "<path d=\"M20 104V54L64 20 108 54V104Z M42 104V64H86V104 M42 82H86\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 32,
+    "name": "Project folder",
+    "family": "Projects & structure",
+    "description": "Project folder: a stable project structure that gives individual tasks a recognizable home.",
+    "body": "<path d=\"M20 34V104H108V46H64L50 24H20V34 M20 58H108 M42 82H86\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 33,
+    "name": "Modular project",
+    "family": "Projects & structure",
+    "description": "Modular project: a stable project structure that gives individual tasks a recognizable home.",
+    "body": "<path d=\"M20 20H60V60H20Z M72 20H108V60H72Z M20 72H60V108H20Z M72 72H108V108H72Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 34,
+    "name": "Nested scope",
+    "family": "Projects & structure",
+    "description": "Nested scope: a stable project structure that gives individual tasks a recognizable home.",
+    "body": "<path d=\"M18 18H110V110H18Z M40 40H88V88H40Z M18 64H40 M88 64H110\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  }
+]

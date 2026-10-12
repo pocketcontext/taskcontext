@@ -1,0 +1,233 @@
+[
+  {
+    "id": 68,
+    "name": "Gathered work",
+    "family": "Shared work & handoffs",
+    "description": "Gathered work: individual contributions meeting in a shared workspace with clear handoffs.",
+    "body": "<path d=\"M64 20V48 M20 64H48 M80 64H108 M64 80V108 M48 48H80V80H48Z M24 24L40 40 M88 88L104 104\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 69,
+    "name": "Shared ownership",
+    "family": "Shared work & handoffs",
+    "description": "Shared ownership: individual contributions meeting in a shared workspace with clear handoffs.",
+    "body": "<path d=\"M22 36H58V92H22Z M70 36H106V92H70Z M46 20H82 M46 108H82 M58 64H70\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 70,
+    "name": "Collaboration arch",
+    "family": "Shared work & handoffs",
+    "description": "Collaboration arch: individual contributions meeting in a shared workspace with clear handoffs.",
+    "body": "<path d=\"M20 106V58Q20 26 48 26H80Q108 26 108 58V106 M44 106V76 M84 106V76 M44 54H84\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 71,
+    "name": "Next step",
+    "family": "Motion & milestones",
+    "description": "Next step: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M20 104V78H48V52H76V26H108 M88 18L108 26 100 46\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 72,
+    "name": "Progress route",
+    "family": "Motion & milestones",
+    "description": "Progress route: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M22 102V70H64V34H106 M90 18L106 34 90 50 M22 88H42 M64 56H84\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 73,
+    "name": "Task cadence",
+    "family": "Motion & milestones",
+    "description": "Task cadence: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M20 24H42V48H20Z M20 60H42V84H20Z M54 42H76V66H54Z M54 78H76V102H54Z M88 24H110V48H88Z M88 60H110V84H88Z\" fill=\"currentColor\" stroke=\"none\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 74,
+    "name": "Milestone spine",
+    "family": "Motion & milestones",
+    "description": "Milestone spine: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M26 20V108 M26 32H62L80 50 M26 64H80L104 88 M26 96H56 M68 38H88V58H68Z M90 80H110V100H90Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 75,
+    "name": "Steady advance",
+    "family": "Motion & milestones",
+    "description": "Steady advance: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M20 36L48 64 20 92 M48 36L76 64 48 92 M76 36L104 64 76 92\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 76,
+    "name": "Work ascent",
+    "family": "Motion & milestones",
+    "description": "Work ascent: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M22 106H106 M30 86V66H50V86 M62 86V46H82V86 M94 86V26H108\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 77,
+    "name": "Open progress",
+    "family": "Motion & milestones",
+    "description": "Open progress: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M24 104V24H104 M44 84L64 64 78 78 108 42 M86 42H108V64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 78,
+    "name": "Route marker",
+    "family": "Motion & milestones",
+    "description": "Route marker: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M20 104Q20 76 48 76H80Q108 76 108 48Q108 20 80 20H48 M48 20L62 34 M48 20L64 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 79,
+    "name": "Milestone dots",
+    "family": "Motion & milestones",
+    "description": "Milestone dots: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M20 64H108 M28 50V78 M64 38V90 M100 26V102 M48 20H80\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 80,
+    "name": "Forward sail",
+    "family": "Motion & milestones",
+    "description": "Forward sail: steady progress expressed through routes, steps and visible checkpoints.",
+    "body": "<path d=\"M28 108V20L106 84H28 M28 20L66 84 M46 108H106\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 81,
+    "name": "Purpose T",
+    "family": "Task letterforms",
+    "description": "Purpose T: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M20 22H108V44H76V108H52V44H20Z\" fill=\"currentColor\" stroke=\"none\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 82,
+    "name": "Connected T",
+    "family": "Task letterforms",
+    "description": "Connected T: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M20 24H108V48H76V106H52V48H20Z M40 24V48 M88 24V48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 83,
+    "name": "T in steps",
+    "family": "Task letterforms",
+    "description": "T in steps: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M20 22H108V42H76V64H64V86H52V108H36V42H20Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 84,
+    "name": "Open T",
+    "family": "Task letterforms",
+    "description": "Open T: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M20 24H108 M20 44H52V108 M108 44H76V108 M52 82H76\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 85,
+    "name": "Task gate",
+    "family": "Task letterforms",
+    "description": "Task gate: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M20 22H108V44H76V108 M52 108V44H20Z M52 78L64 90 100 54\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 86,
+    "name": "T fold",
+    "family": "Task letterforms",
+    "description": "T fold: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M20 20H108L86 44H76V108H52V44H20Z M86 58H108L86 82Z\" fill=\"currentColor\" stroke=\"none\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 87,
+    "name": "T rails",
+    "family": "Task letterforms",
+    "description": "T rails: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M22 24H106 M22 46H106 M52 46V108 M76 46V108 M52 82H76\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 88,
+    "name": "T modular",
+    "family": "Task letterforms",
+    "description": "T modular: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M20 20H46V46H20Z M52 20H78V46H52Z M84 20H110V46H84Z M52 52H78V78H52Z M52 84H78V110H52Z\" fill=\"currentColor\" stroke=\"none\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 89,
+    "name": "T path",
+    "family": "Task letterforms",
+    "description": "T path: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M20 24H108V44H76V104H52V44H20Z M34 34H94 M64 58V90\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 90,
+    "name": "T momentum",
+    "family": "Task letterforms",
+    "description": "T momentum: abstract T constructions that express organization, connection and forward work.",
+    "body": "<path d=\"M18 22H110L90 44H76V108H52V44H18Z M18 62H40V84H18Z\" fill=\"currentColor\" stroke=\"none\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 91,
+    "name": "Delivered box",
+    "family": "Delivery & systems",
+    "description": "Delivered box: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M22 38L64 18 106 38V90L64 110 22 90Z M22 38L64 58 106 38 M64 58V110 M76 78L84 86 98 66\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 92,
+    "name": "Ready package",
+    "family": "Delivery & systems",
+    "description": "Ready package: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M22 24H106V104H22Z M48 24V50H80V24 M42 78L56 92 86 62\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 93,
+    "name": "Delivery tray",
+    "family": "Delivery & systems",
+    "description": "Delivery tray: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M20 72H44L54 88H74L84 72H108V106H20Z M64 20V64 M46 46L64 64 82 46\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 94,
+    "name": "Release gate",
+    "family": "Delivery & systems",
+    "description": "Release gate: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M24 108V22H104V108 M44 108V42H84V108 M44 76H84 M64 20V42\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 95,
+    "name": "Interlocking work",
+    "family": "Delivery & systems",
+    "description": "Interlocking work: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M20 20H64V44H88V20H108V64H84V88H108V108H64V84H40V108H20V64H44V40H20Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 96,
+    "name": "Shipped check",
+    "family": "Delivery & systems",
+    "description": "Shipped check: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M22 34H80V104H22Z M80 60H98L110 78V104H80 M40 66L50 76 72 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 97,
+    "name": "Work engine",
+    "family": "Delivery & systems",
+    "description": "Work engine: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M20 40H42V20H86V40H108V86H86V108H42V86H20Z M46 46H82V82H46Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 98,
+    "name": "Clear finish",
+    "family": "Delivery & systems",
+    "description": "Clear finish: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M22 108V20H106 M22 20V76H106V20 M50 20V76 M78 20V76 M22 48H106\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 99,
+    "name": "Reliable cycle",
+    "family": "Delivery & systems",
+    "description": "Reliable cycle: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M28 34Q64 8 100 36 M84 20L100 36 82 48 M100 92Q64 120 28 92 M46 80L28 92 44 108 M44 62L58 76 84 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  },
+  {
+    "id": 100,
+    "name": "All connected",
+    "family": "Delivery & systems",
+    "description": "All connected: reliable delivery built from interlocking parts and clear completed states.",
+    "body": "<path d=\"M20 20H52V52H20Z M76 20H108V52H76Z M20 76H52V108H20Z M76 76H108V108H76Z M52 36H76 M36 52V76 M92 52V76 M52 92H76\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+  }
+]
