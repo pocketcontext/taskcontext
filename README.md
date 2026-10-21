@@ -71,7 +71,7 @@ export TASKCONTEXT_USER_PASSWORD=... # from your secret store
 "/absolute/path/to/installed/taskcontext/taskcontext" check
 ```
 
-For Google authentication, omit the password and follow the Google Workspace setup below.
+For Google authentication, omit the password and follow the Google Workspace setup below. `login --google` prints the sign-in URL and opens the default browser unless `--no-browser` is given, an SSH session is detected or no browser is available.
 
 Use HTTPS except on localhost. The client runs its pinned Python package through uv, keeps its token cache private, and never prints credentials. `logout` removes the cached token. `check` compares the live SQL schema with the bundled snapshot. See [schema](skills/taskcontext/references/schema.md), [workflows](skills/taskcontext/references/workflows.md), and [examples](skills/taskcontext/references/examples.md).
 
