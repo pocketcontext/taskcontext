@@ -188,7 +188,8 @@ class Client:
         self.home = Path(home)
         self.home.mkdir(parents=True, exist_ok=True)
         self.env = {**os.environ, 'HOME': str(self.home), 'TASKCONTEXT_URL': base, 'TASKCONTEXT_USER_EMAIL': email, 'TASKCONTEXT_USER_PASSWORD': password}
-        self.env.pop('XDG_CACHE_HOME', None)
+        for name in ('XDG_CACHE_HOME', 'XDG_STATE_HOME', 'TASKCONTEXT_SESSION_DIR'):
+            self.env.pop(name, None)
 
     def run(self, *args, stdin=None, status=0):
         say('    $ taskcontext ' + ' '.join(args))

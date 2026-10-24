@@ -105,7 +105,7 @@ def main():
             shutil.copytree(SKILL, installed)
             shutil.copytree(ROOT / 'src/taskcontext_client', installed / 'taskcontext_client', ignore=shutil.ignore_patterns('__pycache__'))
             script = installed / 'taskcontext'
-            environment = {'PATH': os.environ.get('PATH', ''), 'HOME': str(tmp / 'home'), 'XDG_CACHE_HOME': str(tmp / 'cache'),
+            environment = {'PATH': os.environ.get('PATH', ''), 'HOME': str(tmp / 'home'), 'XDG_CACHE_HOME': str(tmp / 'cache'), 'XDG_STATE_HOME': str(tmp / 'state'),
                            'UV_PYTHON': sys.executable, 'UV_CACHE_DIR': str(tmp / 'uv-cache'), 'TASKCONTEXT_URL': base, 'TASKCONTEXT_USER_EMAIL': EMAIL, 'TASKCONTEXT_USER_PASSWORD': PASSWORD}
             outputs = []
             def run(*arguments, expected=0, stdin=None, **overrides):
@@ -132,10 +132,11 @@ def main():
             run('update','issues','missing','{}',expected=2)
             run('delete','issues','missing',expected=2)
             run('batch','[{"method":"DELETE","url":"/api/collections/issues/records/abcdefghijklmno"}]',expected=2)
-            assert not (tmp/'cache/taskcontext').exists()
+            assert not (tmp/'state/taskcontext').exists()
             assert re.fullmatch('[a-z0-9]{15}', run('newid', TASKCONTEXT_URL=None)[0].strip())
             assert data('whoami')['id'] == user['id']
-            session_file, = (tmp/'cache/taskcontext').glob('*.json')
+            session_file, = (tmp/'state/taskcontext').glob('*.json')
+            assert not (tmp/'cache/taskcontext').exists() and not (tmp/'home/.cache').exists()
             assert stat.S_IMODE(session_file.stat().st_mode) == 0o600
             assert stat.S_IMODE(session_file.parent.stat().st_mode) == 0o700
             assert PASSWORD not in session_file.read_text()
@@ -182,7 +183,7 @@ def main():
             assert not session_file.exists()
             for output in outputs:
                 assert PASSWORD not in output and token not in output
-            print('PASS: portable client, users identity, schema snapshot, private cache, revision conflict, atomic batches, token recovery, secret-free output')
+            print('PASS: portable client, users identity, schema snapshot, private session in XDG state, revision conflict, atomic batches, token recovery, secret-free output')
 
 if __name__ == '__main__':
     main()
