@@ -146,19 +146,20 @@ The Dockerfile pins PocketContext, base images, and Litestream. It serves port 8
 
 An empty volume must restore an existing replica before the server starts. A missing or inaccessible replica stops startup. A fresh install requires a one-shot `docker run --rm` with the same environment, network and `/storage` volume and the image command `init`; it refuses any existing local state or replica. Start normally afterward to begin replication. Failed initialization leaves a durable marker and requires operator recovery into a fresh volume. The backup includes account hashes and any stored SMTP or OAuth provider credentials, so the bucket must remain private. No issue attachments are implemented, but recovery inventories every file field in the actual PocketBase schema, including user avatars. It streams each referenced S3 object and verifies complete readability and response length; there is no authoritative checksum for cryptographic comparison. Recovery stages and checks SQLite and files before atomically installing the database. Frozen starts require matching persisted S3 settings and an existing valid `auxiliary.db`.
 
-Production runs through the maintained `once-pocketcontext-v2` scaffold with
-separate `taskcontext-files` and `taskcontext-replica` buckets. Keep credentials
-in that scaffold's ignored private configuration. Public image pulls are required
-by the commandless shared deployment dispatcher.
+Production runs through the private `pocketdeploy-v2` scaffold with separate
+`taskcontext-files` and `taskcontext-replica` buckets; it moved there from
+`once-pocketcontext-v2` on 24 October 2026 by recovery from the replica. Keep
+credentials in that scaffold's ignored private configuration. Public image pulls
+are required by the commandless deployment trigger.
 
 ## Continuous deployment
 
-The main-only `once-v2` GitHub environment supplies the dedicated restricted SSH
-key and pinned host identity. `CONTEXT_DEPLOY_PAUSED=true` pauses deployment while
-validation and publication continue. App-local installers and wrappers are retired.
-The maintained shared dispatcher locks the target, resolves an immutable image,
-stops the sole writer with a 300-second timeout and preserves volumes. There is
-no automatic rollback; inspect pending state before any retry. See the
+The `pocketdeploy-v2` GitHub environment, named by the repository variable
+`COLORS_PROFILE`, supplies the PocketDeploy SSH key and pinned host identity.
+`CONTEXT_DEPLOY_PAUSED=true` pauses deployment while validation and publication
+continue. App-local installers and wrappers are retired. The host deploys with a
+stop-first policy: one writer, a 300-second graceful stop and preserved volumes.
+There is no automatic rollback. See the
 [common CI and deployment contract](docs/ci-and-deployment.md).
 
 ## Validate
