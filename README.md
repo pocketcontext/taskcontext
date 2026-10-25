@@ -157,7 +157,7 @@ are required by the commandless deployment trigger.
 The `pocketdeploy-v2` GitHub environment, named by the repository variable
 `COLORS_PROFILE`, supplies the PocketDeploy SSH key and pinned host identity.
 `CONTEXT_DEPLOY_PAUSED=true` pauses deployment while validation and publication
-continue. App-local installers and wrappers are retired. The host deploys with a
+continue. The old-host installer and wrapper are removed. The host deploys with a
 stop-first policy: one writer, a 300-second graceful stop and preserved volumes.
 There is no automatic rollback. See the
 [common CI and deployment contract](docs/ci-and-deployment.md).

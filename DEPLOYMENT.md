@@ -81,7 +81,7 @@ The users and business collections are empty, as expected for this greenfield se
 
 A dedicated TaskContext key was added without replacing sibling deployment keys. Its forced command invokes the root-owned `/usr/local/sbin/deploy-taskcontext` wrapper with a narrow sudo permission. GitHub environment `once-pocketcontext` holds the key and pinned server identity; repository variable `COLORS_PROFILE` enables the deploy job.
 
-The restricted SSH path successfully performed the initial controlled switch from the pinned image to `latest`, retaining one CPU, 512 MiB, data volume, environment and replica. ONCE automatic updates remain disabled. The wrapper pulls first, gracefully stops the sole TaskContext container, then updates. Reinstall `deploy/install.py` after any scaffold convergence that regenerates authorized keys. Never print Docker labels or environment metadata.
+The restricted SSH path successfully performed the initial controlled switch from the pinned image to `latest`, retaining one CPU, 512 MiB, data volume, environment and replica. ONCE automatic updates remain disabled. The wrapper pulls first, gracefully stops the sole TaskContext container, then updates. The old-host `deploy/install.py` that installed this wrapper has since been removed. Never print Docker labels or environment metadata.
 
 The first full CD run [35839474799](https://github.com/pocketcontext/taskcontext/actions/runs/35839474799) passed tests, restore checks, both architecture builds, publication, SSH deployment, and public health verification. Live inspection confirmed application revision `3fd57a8`, one running TaskContext container using `latest`, preserved resource limits, and disabled automatic updates. Sibling application health checks passed.
 
