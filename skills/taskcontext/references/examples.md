@@ -11,7 +11,27 @@ Replace `/absolute/path/to/installed/taskcontext` with the directory containing 
 "/absolute/path/to/installed/taskcontext/taskcontext" update issues '<issue-id>' '{"status":"in_progress","expected_revision":1}'
 "/absolute/path/to/installed/taskcontext/taskcontext" update issues '<issue-id>' '{"status":"done","resolution":"completed","expected_revision":2}'
 "/absolute/path/to/installed/taskcontext/taskcontext" update issues '<issue-id>' '{"status":"ready","resolution":"","expected_revision":3}'
+"/absolute/path/to/installed/taskcontext/taskcontext" update issues '<issue-id>' '{"due_date":"2030-01-15","expected_revision":4}'
+"/absolute/path/to/installed/taskcontext/taskcontext" update issues '<issue-id>' '{"due_date":"","expected_revision":5}'
 ```
+
+Open issues that are overdue or due within 7 days (change `+7 days` for another window):
+
+```sql
+SELECT key, title, assignee, date(due_date) AS due, status
+FROM issues
+WHERE status != 'done' AND due_date != ''
+  AND date(due_date) <= date('now', '+7 days')
+ORDER BY due_date, key LIMIT 100
+```
+
+Payment reminder in a dedicated `PAY` project (no bank details or credentials; every user can read it):
+
+```sh
+"/absolute/path/to/installed/taskcontext/taskcontext" create issues '{"project":"<pay-project-id>","title":"Pay invoice 2030-014 from Example Supplier","assignee":"<payer-user-id>","due_date":"2030-01-31","description":"Supplier: Example Supplier\nInvoice: 2030-014\nAmount: 120.00 EUR"}'
+```
+
+After a human confirms payment, add a comment such as `Paid; payment reference <reference>` and then set `status=done` with resolution `completed`.
 
 Ready issues without unfinished blockers:
 

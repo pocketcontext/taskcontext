@@ -7,7 +7,7 @@ Business collections have `id`, `created`, `updated`, `created_by`, `updated_by`
 | Collection | Fields |
 | --- | --- |
 | projects | `key`, `name`, `description`, `archived` |
-| issues | `project`, `parent`, `key`, `number`, `type`, `title`, `description`, `priority`, `assignee`, `reporter`, `status`, `resolution`, `completed_at` |
+| issues | `project`, `parent`, `key`, `number`, `type`, `title`, `description`, `priority`, `assignee`, `reporter`, `status`, `resolution`, `completed_at`, `due_date` |
 | issue_links | `source`, `target`, `type`, `active` |
 | comments | `issue`, `body` |
 | references | `issue`, `kind`, `url`, `title` |
@@ -16,6 +16,8 @@ Business collections have `id`, `created`, `updated`, `created_by`, `updated_by`
 Projects require a unique stable key and name. Keys are 2–12 uppercase ASCII letters/digits, starting with a letter. Issue keys and numbers are allocated by the server within a project; never construct the next number yourself. Issue project, key and number are immutable. The reporter is the authenticated creator; the assignee can be another user or empty.
 
 Issue types: `epic`, `task`, `bug`, `subtask` (default `task`). Priority: `low`, `medium`, `high`, `urgent` (default `medium`). Status: `backlog`, `ready`, `in_progress`, `review`, `done` (default `backlog`). A done issue needs resolution `completed`, `cancelled`, or `duplicate`; other statuses require an empty resolution. `completed_at` is managed by the server. Completion does not assert deployment: record that evidence separately.
+
+`due_date` is optional and client-written, like `priority`. Send `YYYY-MM-DD`; the server stores it as a UTC date/time at midnight UTC (`2030-01-15 00:00:00.000Z`) and rejects other formats and invalid dates. Send `""` to clear it. An empty value means no due date. Completing or reopening an issue keeps its due date. Compare dates in SQL with `date(due_date)`, for example `date(due_date) < date('now')`. The server sends no reminders; due dates are only queried.
 
 Hierarchy stays within a project: epics have no parent; tasks and bugs optionally belong to an epic; subtasks require a task or bug parent. Server validation prevents cycles. Dependencies use `issue_links`: `source` blocks `target` for type `blocks`; the other types are `relates` and `duplicates`. Resolve both issues before creating a link. Links default to `active=true`. Retire an obsolete link with `active=false` and its expected revision; reactivate the same link instead of creating a duplicate. Filter on `active=1` when querying current dependencies.
 

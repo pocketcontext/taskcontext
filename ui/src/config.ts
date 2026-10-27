@@ -8,6 +8,7 @@ export interface Entity {
   relations?: Record<string, string>;
   hidden?: string[];
   markdown?: string[];
+  dates?: string[];
   menu?: boolean;
   relationLabels?: Record<string, string>;
   reverseLabels?: Record<string, string>;
@@ -25,7 +26,7 @@ export const app: {
       table: "issues",
       label: "Issues",
       title: ["key", "title"],
-      subtitle: ["status", "priority"],
+      subtitle: ["status", "priority", "due_date"],
       search: ["key", "title", "description"],
       filters: {
         status: ["backlog", "ready", "in_progress", "review", "done"],
@@ -38,6 +39,7 @@ export const app: {
         reporter: "user_directory",
       },
       markdown: ["description"],
+      dates: ["due_date"],
     },
     {
       table: "projects",
@@ -96,3 +98,17 @@ for (const e of app.entities)
       created_by: "user_directory",
       updated_by: "user_directory",
     };
+// PocketBase date fields read through SQL as "YYYY-MM-DD HH:MM:SS.sssZ"; show the calendar date only.
+export const dateOnly = (value: unknown) =>
+  typeof value === "string"
+    ? (/^(\d{4}-\d{2}-\d{2})(?:[ T]|$)/.exec(value)?.[1] ?? value)
+    : String(value);
+export const subtitle = (e: Entity, r: Record<string, unknown>) =>
+  (e.subtitle || [])
+    .filter((f) => r[f] !== null && r[f] !== undefined && r[f] !== "")
+    .map((f) =>
+      e.dates?.includes(f)
+        ? `${f.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())} ${dateOnly(r[f])}`
+        : String(r[f]),
+    )
+    .join(" · ");

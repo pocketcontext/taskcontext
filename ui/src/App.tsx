@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { app, type Entity } from "./config";
+import { app, dateOnly, subtitle, type Entity } from "./config";
 import {
   pb,
   sessionEpoch,
@@ -142,6 +142,8 @@ function Value({
 }) {
   if (e.relations?.[field])
     return <RecordLink table={e.relations[field]} id={value} />;
+  if (e.dates?.includes(field))
+    return <span className="text-value">{dateOnly(value)}</span>;
   if (
     field.endsWith("_minor") &&
     typeof value === "number" &&
@@ -564,12 +566,7 @@ function Reader() {
                   onClick={() => setOpen(false)}
                 >
                   <strong>{label(e, r)}</strong>
-                  <small>
-                    {(e.subtitle || [])
-                      .map((f) => r[f])
-                      .filter((v) => v !== null && v !== "")
-                      .join(" · ")}
-                  </small>
+                  <small>{subtitle(e, r)}</small>
                 </a>
               ))
             )}

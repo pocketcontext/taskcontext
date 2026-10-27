@@ -36,6 +36,7 @@ test.beforeEach(async ({ page }) => {
               "**Safe** [bad](javascript:alert(1)) <script>window.evil=true</script>",
             project,
             status: "ready",
+            due_date: "2026-11-01 00:00:00.000Z",
           },
         ];
       else
@@ -43,6 +44,8 @@ test.beforeEach(async ({ page }) => {
           id: i ? id.slice(0, 12) + String(i).padStart(3, "0") : id,
           key: "APP-" + (i + 1),
           title: "Reader test " + i,
+          status: "ready",
+          due_date: i === 1 ? "2026-11-01 00:00:00.000Z" : "",
         }));
     }
     if (sql.includes('FROM "projects"') && sql.includes("WHERE id="))
@@ -70,6 +73,8 @@ test("deep link survives sign in, related labels resolve and markdown stays iner
   await expect(
     page.getByRole("link", { name: "APP · Example project", exact: true }),
   ).toBeVisible();
+  await expect(page.getByText("2026-11-01", { exact: true })).toBeVisible();
+  await expect(page.getByText("00:00:00.000Z")).toHaveCount(0);
   expect(await page.evaluate(() => Boolean((window as any).evil))).toBe(false);
   await expect(page.locator('a[href^="javascript:"]')).toHaveCount(0);
   await page.reload();
@@ -92,6 +97,9 @@ test("search is server-paginated and mobile browse is usable", async ({
   await page.getByLabel("Password", { exact: true }).fill("test-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("button", { name: "Browse", exact: true }).click();
+  await expect(
+    page.getByText("ready · Due date 2026-11-01", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByText("APP-31 · Last result")).toBeVisible();
   await page.getByRole("button", {name:"Previous",exact:true}).click();

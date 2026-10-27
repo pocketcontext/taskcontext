@@ -38,6 +38,17 @@ function validate(app,r) {
     }
   }
 }
+// Returns a field as the client sent it (JSON, form or multipart @jsonPayload), or undefined when absent.
+function rawBodyField(e,field) {
+  const req=e.request||e.requestEvent.request, type=String(req.header.get('Content-Type')||'').toLowerCase();
+  if(!type.startsWith('multipart/') && !type.startsWith('application/x-www-form-urlencoded')) {
+    const raw=toString(req.body);const body=raw.trim() ? JSON.parse(raw) : {};
+    return body && typeof body==='object' && Object.prototype.hasOwnProperty.call(body,field) ? body[field] : undefined;
+  }
+  const payload=req.formValue('@jsonPayload');
+  if(payload){const body=JSON.parse(payload);if(Object.prototype.hasOwnProperty.call(body,field))return body[field];}
+  return req.formValue(field) || undefined; // an empty form value is a valid clear either way
+}
 function write(e) {
   const originalApp=e.app, r=e.record, name=r.collection().name, fresh=r.isNew(), body=e.requestInfo().body;
   originalApp.runInTransaction((app)=> {
@@ -56,6 +67,9 @@ function write(e) {
       if(name==='issue_links' && fresh && !Object.prototype.hasOwnProperty.call(body,'active')) r.set('active',true);
       if(name==='issues') {
         for(const field of ['key','number','reporter','completed_at']) if(Object.prototype.hasOwnProperty.call(body,field)) invalid(field+' is server managed');
+        // PocketBase coerces unparseable dates to empty before hooks run, so check the raw request value.
+        const due=Object.prototype.hasOwnProperty.call(body,'due_date') ? rawBodyField(e,'due_date') : undefined;
+        if(due!==undefined && (typeof due!=='string' || (due!=='' && (!/^\d{4}-\d{2}-\d{2}$/.test(due) || r.getString('due_date')!==due+' 00:00:00.000Z')))) invalid('due_date must be a valid YYYY-MM-DD date or empty');
         if(fresh) {
           const project=app.findRecordById('projects',r.getString('project'));
           if(project.getBool('archived')) invalid('Cannot create issues in an archived project');

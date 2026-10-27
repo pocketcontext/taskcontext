@@ -12,7 +12,11 @@ For Google sessions, authenticated commands refresh a still-valid saved PocketBa
 
 ## Triage and assignment
 
-Resolve the project by key, and search for existing issues before recording a new report. Read matching issues and ask for clarification only when ambiguity affects the requested change. Resolve assignee IDs through `user_directory`; a name is not necessarily unique. Put supplied facts in the description, distinguish unknowns, and avoid inventing acceptance criteria. Create an issue with its project and title; set type, priority, and assignee when the request establishes them.
+Resolve the project by key, and search for existing issues before recording a new report. Read matching issues and ask for clarification only when ambiguity affects the requested change. Resolve assignee IDs through `user_directory`; a name is not necessarily unique. Put supplied facts in the description, distinguish unknowns, and avoid inventing acceptance criteria. Create an issue with its project and title; set type, priority, assignee, and `due_date` (`YYYY-MM-DD`) when the request establishes them. Clear a due date with `""`. TaskContext sends no reminders; report overdue or upcoming issues by querying them.
+
+## Payment reminders
+
+One convention for bills to pay: a dedicated project (for example key `PAY`), one task per invoice, assignee = the person who pays, `due_date` = the payment due date. Put amount, currency, supplier and invoice number in the description. Never record bank details, card numbers or credentials: every user can read every record. Agents never make payments. Set `status=done` with resolution `completed` only after a human confirms payment, and add a comment recording the payment reference.
 
 ## Start, review, complete, reopen
 

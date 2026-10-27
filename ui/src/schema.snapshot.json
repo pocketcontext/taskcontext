@@ -143,6 +143,10 @@
           "type": "TEXT"
         },
         {
+          "name": "due_date",
+          "type": "TEXT"
+        },
+        {
           "name": "id",
           "type": "TEXT"
         },

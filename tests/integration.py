@@ -91,6 +91,30 @@ def main():
         assert not reopened['completed_at']
         for field,value in [('key','FORGED-1'),('number',90),('reporter',u2['id']),('revision',20),('completed_at','nonsense')]:
             patch('issues',reopened,{field:value},400)
+        # Optional client-written due date: stored as midnight UTC, kept on done, cleared with "".
+        due=create('issues',{'project':p['id'],'title':'Pay synthetic invoice','due_date':'2030-01-15'})
+        assert due['due_date']=='2030-01-15 00:00:00.000Z', due
+        assert create('issues',{'project':p['id'],'title':'No due date'})['due_date']==''
+        for bad in ['not-a-date','2030-02-30','2030-01-15T12:00:00Z',20300115]:
+            request('POST',path('issues'),{'project':p['id'],'title':'Bad date','due_date':bad},token,400)
+        rows=query(f"SELECT due_date, date(due_date) AS day FROM issues WHERE id='{due['id']}'")['rows']
+        assert rows==[['2030-01-15 00:00:00.000Z','2030-01-15']], rows
+        moved=patch('issues',due,{'due_date':'2030-02-01'})
+        assert moved['due_date']=='2030-02-01 00:00:00.000Z' and moved['revision']==2
+        patch('issues',due,{'due_date':'2030-03-01'},409)
+        patch('issues',moved,{'due_date':'garbage'},400)
+        closed=patch('issues',moved,{'status':'done','resolution':'completed'})
+        assert closed['due_date']=='2030-02-01 00:00:00.000Z'
+        cleared=patch('issues',closed,{'due_date':''})
+        assert cleared['due_date']==''
+        due_history=[a for a in request('GET',path('audit_log')+'?perPage=200&sort=created',token=token)['items'] if a['record']==due['id']]
+        assert due_history[0]['changes']['after']['due_date']=='2030-01-15 00:00:00.000Z', due_history
+        assert (due_history[1]['changes']['before']['due_date'],due_history[1]['changes']['after']['due_date'])==('2030-01-15 00:00:00.000Z','2030-02-01 00:00:00.000Z'), due_history[1]
+        assert (due_history[-1]['changes']['before']['due_date'],due_history[-1]['changes']['after']['due_date'])==('2030-02-01 00:00:00.000Z',''), due_history[-1]
+        assert len(due_history)==4
+        request('POST','/api/batch',{'requests':[{'method':'PATCH','url':path('issues')+'/'+due['id'],'body':{'expected_revision':cleared['revision'],'due_date':'2030-13-01'}}]},token,400)
+        batch_due=request('POST','/api/batch',{'requests':[{'method':'PATCH','url':path('issues')+'/'+due['id'],'body':{'expected_revision':cleared['revision'],'due_date':'2030-04-30'}}]},token)
+        assert batch_due[0]['body']['due_date']=='2030-04-30 00:00:00.000Z', batch_due
         epic=create('issues',{'project':p['id'],'type':'epic','title':'Epic'})
         task=create('issues',{'project':p['id'],'parent':epic['id'],'title':'Child task'})
         sub=create('issues',{'project':p['id'],'type':'subtask','parent':task['id'],'title':'Subtask'})
