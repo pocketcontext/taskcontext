@@ -2,13 +2,13 @@
 
 Ordinary commands need no ObserveContext installation or login. When the user requests performance tracing, install the separate [ObserveContext skill](https://github.com/pocketcontext/observecontext/tree/main/skills/observecontext). Resolve both installed skill directories to absolute paths. Authenticate independently to TaskContext and ObserveContext using ordinary users; never pass a source application token to ObserveContext.
 
-Set `OBSERVECONTEXT_URL=https://observe.pocketcontext.com` and `OBSERVECONTEXT_USER_EMAIL` to your Workspace email, then run these logins sequentially (each uses loopback port 8765):
+Run these logins sequentially (each uses loopback port 8765). Supply URL/email options on first login; later logins reuse saved defaults. Replace example origins and email with your own configuration:
 
 ```sh
-"/absolute/path/to/taskcontext/taskcontext" login --google
-"/absolute/path/to/observecontext/observecontext" login --google
+"/absolute/path/to/taskcontext/taskcontext" login --google --url https://tasks.pocketcontext.com --email you@pocketcontext.com
+"/absolute/path/to/observecontext/observecontext" login --google --url https://observe.pocketcontext.com --email you@pocketcontext.com
 "/absolute/path/to/observecontext/observecontext" capture \
-  --url "$TASKCONTEXT_URL" --service taskcontext.client --upload -- \
+  --url https://tasks.pocketcontext.com --service taskcontext.client --upload -- \
   "/absolute/path/to/taskcontext/taskcontext" \
   sql 'SELECT id FROM projects LIMIT 5'
 ```

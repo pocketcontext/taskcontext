@@ -1,6 +1,6 @@
 ---
 name: taskcontext
-description: Operate TaskContext projects and issues through authenticated SQL reads and REST writes. Use for triage, assignment, dependencies, comments, completion evidence, and issue history. Needs TASKCONTEXT_URL and TASKCONTEXT_USER_EMAIL, plus Google OAuth login or TASKCONTEXT_USER_PASSWORD.
+description: Operate TaskContext projects and issues through authenticated SQL reads and REST writes. Use for triage, assignment, dependencies, comments, completion evidence, and issue history. Accepts server URL and account email as CLI options or saved login defaults, with optional environment overrides. Supports Google OAuth or account-password login.
 ---
 
 # TaskContext
