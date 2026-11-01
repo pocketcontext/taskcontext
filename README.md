@@ -29,7 +29,7 @@ An operator creates a superuser with the server's `superuser upsert` command aga
 {"name":"Team member","email":"member@example.com","password":"<strong password>","passwordConfirm":"<same password>"}
 ```
 
-Ordinary operations authenticate at `POST /api/collections/users/auth-with-password` and use the returned token in `Authorization`. Users cannot directly provision accounts, change the schema, or read another user's authentication record. `user_directory` exposes only IDs and display names to authenticated users. An operator manages names and email addresses; users can change their own password by supplying `password`, `passwordConfirm`, and `oldPassword`. Password changes invalidate existing tokens. Tokens last seven days.
+Ordinary operations authenticate at `POST /api/collections/users/auth-with-password` and use the returned token in `Authorization`. Users cannot directly provision accounts, change the schema, or read another user's authentication record. `user_directory` exposes only IDs and display names to authenticated users. An operator manages names and email addresses; users can change their own password by supplying `password`, `passwordConfirm`, and `oldPassword`. Password changes invalidate existing tokens. Direct password/Google tokens last seven days; hosted-identity tokens last at most fifteen minutes.
 
 Use the person's user account for their agent: assignment, reporter, and audit attribution all use the same identity. There is no second agent account requirement.
 
@@ -53,7 +53,7 @@ Google Workspace suspension or consent revocation is not synchronized automatica
 
 ## Install the skill
 
-Sign in with `taskcontext login --google --url https://tasks.pocketcontext.com --email you@pocketcontext.com`. For password authentication use `login --password` with `TASKCONTEXT_USER_PASSWORD` supplied privately in the environment. URL and email options may appear before or after the command. Resolution is CLI options, then `TASKCONTEXT_URL` / `TASKCONTEXT_USER_EMAIL`, then saved defaults. Successful explicit login saves the URL and email in `default.json` beside the private per-account token file; ordinary commands and refreshes do not change the default. The directory is `TASKCONTEXT_SESSION_DIR`, otherwise `$XDG_STATE_HOME/taskcontext/` (default `~/.local/state/taskcontext/`). Files use mode 0600 and the directory 0700. `logout` removes the selected token and retains settings; `logout --forget` also removes matching defaults. Legacy cache sessions are not imported; sign in again. Passwords are never saved.
+Sign in with `taskcontext login --url https://tasks.pocketcontext.com --email you@pocketcontext.com`. For password authentication use `login --password` with `TASKCONTEXT_USER_PASSWORD` supplied privately in the environment. URL and email options may appear before or after the command. Resolution is CLI options, then `TASKCONTEXT_URL` / `TASKCONTEXT_USER_EMAIL`, then saved defaults. Successful explicit login saves the URL and email in `default.json` beside the private per-account token file; ordinary commands and refreshes do not change the default. The directory is `TASKCONTEXT_SESSION_DIR`, otherwise `$XDG_STATE_HOME/taskcontext/` (default `~/.local/state/taskcontext/`). Files use mode 0600 and the directory 0700. `logout` removes the selected token and retains settings; `logout --forget` also removes matching defaults. Legacy cache sessions are not imported; sign in again. Passwords are never saved.
 
 
 Install `skills/taskcontext/` into your coding agent's skills directory, or use the skills CLI:
@@ -74,11 +74,43 @@ export TASKCONTEXT_USER_PASSWORD=... # from your secret store
 "/absolute/path/to/installed/taskcontext/taskcontext" check
 ```
 
-For Google authentication, omit the password and follow the Google Workspace setup below. `login --google` prints the sign-in URL and opens the default browser unless `--no-browser` is given, an SSH session is detected or no browser is available.
+For hosted authentication, run bare `login`. For direct Google fallback, omit the password and follow the setup below. `login --google` prints the sign-in URL and opens the default browser unless `--no-browser` is given, an SSH session is detected or no browser is available.
 
 Use HTTPS except on localhost. The client runs its pinned Python package through uv, keeps its login session private with mode 0600 in `$XDG_STATE_HOME/taskcontext/` (default `~/.local/state/taskcontext/`, or `TASKCONTEXT_SESSION_DIR` when set) so clearing `~/.cache` does not sign you out, and never prints credentials. `logout` removes the selected token but retains default settings. `check` compares the live SQL schema with the bundled snapshot. See [schema](skills/taskcontext/references/schema.md), [workflows](skills/taskcontext/references/workflows.md), and [examples](skills/taskcontext/references/examples.md).
 
-## Google Workspace authentication
+## Hosted identity login
+
+Run `taskcontext login --url https://tasks.pocketcontext.com --email you@pocketcontext.com`.
+The shared IdentityContext client reuses a valid session or opens a hosted Google
+sign-in URL. Over SSH it prints the URL; the human completes browser sign-in and
+pastes the single-use code into the initiating terminal. No callback tunnel is
+needed. Login never restores disabled accounts or changes project permissions.
+
+Shared identity sessions live under `$XDG_STATE_HOME/pocketcontext-id/` (default
+`~/.local/state/pocketcontext-id/`) with private permissions, seven idle days and
+thirty absolute days. App defaults and tokens remain under TaskContext's own
+state directory. Assertions are single-use and audience-bound for sixty seconds.
+App tokens expire at assertion issue time plus fifteen minutes; PocketBase refresh
+cannot extend them. Ordinary commands renew through identity without opening a
+browser and never silently switch to another authentication method.
+
+`taskcontext login --google` remains the explicit direct-app fallback; over SSH it
+requires forwarding port8765. `login --password` remains explicit for provisioned
+password accounts. Direct sessions keep their existing lifetime. Full offboarding
+must disable both the central identity account and the TaskContext account.
+Central disable prevents new assertions; existing identity access is bounded to
+fifteen minutes. TaskContext disable invalidates its tokens immediately.
+
+App `logout` removes only its app token; `logout --forget` also removes matching
+URL/email defaults. To revoke the shared session, install the separate identity CLI
+and ensure uv's tool directory is on PATH:
+
+```sh
+uv tool install 'pocketcontext-identity @ git+https://github.com/pocketcontext/identitycontext.git@ffce6425e24dae7b5576c4de3ae2935223b247cb'
+identitycontext logout --email you@pocketcontext.com
+```
+
+## Direct Google fallback setup
 
 An operator configures Google once before users sign in:
 
@@ -178,6 +210,8 @@ python3 tests/required_users.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/account_access.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/realtime_access.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/oauth.py
+python3 tests/identity_client.py
+python3 tests/identity_integration.py --binary ../pocketcontext/bin/pocketcontext
 python3 tests/oauth_integration.py --binary ../pocketcontext/bin/pocketcontext
 ```
 

@@ -58,6 +58,10 @@ jobs:
         run: python3 taskcontext/tests/oauth.py
       - name: Test OAuth exchange and identity
         run: python3 taskcontext/tests/oauth_integration.py --binary pocketcontext/bin/pocketcontext
+      - name: Test hosted identity client
+        run: python3 taskcontext/tests/identity_client.py
+      - name: Test hosted identity exchange and application policy
+        run: python3 taskcontext/tests/identity_integration.py --binary pocketcontext/bin/pocketcontext
       - name: Test deployment hooks
         run: python3 taskcontext/tests/deploy.py --binary pocketcontext/bin/pocketcontext
       - name: Recovery comparison safety

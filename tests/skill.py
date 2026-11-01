@@ -126,8 +126,9 @@ def main():
                 (ROOT / 'src/taskcontext_client/schema.json').write_text(json.dumps(snapshot, indent=2) + '\n')
                 print('Wrote schema snapshot from isolated server')
                 return
-            for key in ('TASKCONTEXT_URL','TASKCONTEXT_USER_EMAIL','TASKCONTEXT_USER_PASSWORD'):
+            for key in ('TASKCONTEXT_URL','TASKCONTEXT_USER_EMAIL'):
                 assert key in run('whoami', expected=2, **{key:None})[1]
+            assert 'TASKCONTEXT_USER_PASSWORD' in run('login','--password',expected=2,TASKCONTEXT_USER_PASSWORD=None)[1]
             run('create','projects','{oops',expected=2)
             run('update','issues','missing','{}',expected=2)
             run('delete','issues','missing',expected=2)

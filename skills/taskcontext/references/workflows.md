@@ -1,9 +1,18 @@
 # Workflows
 
-Sign in with `taskcontext login --google --url https://tasks.pocketcontext.com --email you@pocketcontext.com`. For password authentication use `login --password` with `TASKCONTEXT_USER_PASSWORD` supplied privately in the environment. URL and email options may appear before or after the command. Resolution is CLI options, then `TASKCONTEXT_URL` / `TASKCONTEXT_USER_EMAIL`, then saved defaults. Successful explicit login saves the URL and email in `default.json` beside the private per-account token file; ordinary commands and refreshes do not change the default. The directory is `TASKCONTEXT_SESSION_DIR`, otherwise `$XDG_STATE_HOME/taskcontext/` (default `~/.local/state/taskcontext/`). Files use mode 0600 and the directory 0700. `logout` removes the selected token and retains settings; `logout --forget` also removes matching defaults. Legacy cache sessions are not imported; sign in again. Passwords are never saved.
+Sign in with `taskcontext login --url https://tasks.pocketcontext.com --email you@pocketcontext.com`. For password authentication use `login --password` with `TASKCONTEXT_USER_PASSWORD` supplied privately in the environment. URL and email options may appear before or after the command. Resolution is CLI options, then `TASKCONTEXT_URL` / `TASKCONTEXT_USER_EMAIL`, then saved defaults. Successful explicit login saves the URL and email in `default.json` beside the private per-account token file; ordinary commands and refreshes do not change the default. The directory is `TASKCONTEXT_SESSION_DIR`, otherwise `$XDG_STATE_HOME/taskcontext/` (default `~/.local/state/taskcontext/`). Files use mode 0600 and the directory 0700. `logout` removes the selected token and retains settings; `logout --forget` also removes matching defaults. Legacy cache sessions are not imported; sign in again. Passwords are never saved.
 
 
 ## Authentication
+
+Use bare `taskcontext login --url https://tasks.pocketcontext.com --email you@pocketcontext.com`
+for shared hosted identity. A valid session is reused; otherwise open the hosted
+URL and enter its single-use code in the initiating terminal. This works over SSH
+without forwarding. Ordinary commands renew without browser prompts and never
+automatically fall back. See [hosted identity login](../SKILL.md#hosted-identity-login)
+for expiry, logout and offboarding.
+
+### Explicit direct Google fallback
 
 Use login options `--url URL --email EMAIL` on first sign-in. For Google OAuth, run `taskcontext login --google`. Let the user complete any account selection, authentication, or consent. Process one application at a time and verify completion with `taskcontext whoami` before starting another application's login. The operator must configure Google's Internal audience, register `http://127.0.0.1:8765/callback`, enable the provider, and enable JIT for the Workspace domain or provision the matching user email. With JIT, the first valid Google login creates the account; a disabled account cannot sign in or be recreated. The Google client secret stays on the TaskContext server.
 
