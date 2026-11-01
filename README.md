@@ -392,3 +392,13 @@ Local validation on 6 October 2026 passed image build, container configuration,
 smoke and populated restore, plus the three-stage primary S3 recovery gate and
 stale-snapshot/private-copy regression checks. These used the pinned server and
 isolated synthetic data; images remain local and production has not been changed.
+
+## Litestream cleanup frequency
+
+The image checks for expired L0 files every five minutes
+(`l0-retention-check-interval: 5m`) to reduce object-store listing requests.
+This delays cleanup and can temporarily retain more local and remote files; it
+does not change the default ten-second replication interval, compaction schedule,
+minimum L0 retention or snapshot history. Successful L1 compaction can also run
+cleanup. Container smoke checks verify the effective interval, and populated
+restore checks remain release gates.
