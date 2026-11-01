@@ -181,6 +181,12 @@ def main():
             assert json.loads(session_file.read_text())['token'] != 'expired-token'
             run('logout',TASKCONTEXT_USER_PASSWORD=None)
             assert not session_file.exists()
+            run('login', '--password', '--url', base, '--email', EMAIL,
+                TASKCONTEXT_URL=None, TASKCONTEXT_USER_EMAIL=None)
+            assert data('whoami', TASKCONTEXT_URL=None, TASKCONTEXT_USER_EMAIL=None,
+                        TASKCONTEXT_USER_PASSWORD=None)['id'] == user['id']
+            run('logout', '--forget', TASKCONTEXT_URL=None, TASKCONTEXT_USER_EMAIL=None)
+            assert not (tmp/'state/taskcontext/default.json').exists()
             for output in outputs:
                 assert PASSWORD not in output and token not in output
             print('PASS: portable client, users identity, schema snapshot, private session in XDG state, revision conflict, atomic batches, token recovery, secret-free output')

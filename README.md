@@ -53,6 +53,9 @@ Google Workspace suspension or consent revocation is not synchronized automatica
 
 ## Install the skill
 
+Sign in with `taskcontext login --google --url https://tasks.pocketcontext.com --email you@pocketcontext.com`. For password authentication use `login --password` with `TASKCONTEXT_USER_PASSWORD` supplied privately in the environment. URL and email options may appear before or after the command. Resolution is CLI options, then `TASKCONTEXT_URL` / `TASKCONTEXT_USER_EMAIL`, then saved defaults. Successful explicit login saves the URL and email in `default.json` beside the private per-account token file; ordinary commands and refreshes do not change the default. The directory is `TASKCONTEXT_SESSION_DIR`, otherwise `$XDG_STATE_HOME/taskcontext/` (default `~/.local/state/taskcontext/`). Files use mode 0600 and the directory 0700. `logout` removes the selected token and retains settings; `logout --forget` also removes matching defaults. Legacy cache sessions are not imported; sign in again. Passwords are never saved.
+
+
 Install `skills/taskcontext/` into your coding agent's skills directory, or use the skills CLI:
 
 ```sh
@@ -61,7 +64,7 @@ npx skills add pocketcontext/taskcontext --skill taskcontext
 
 In the commands below, replace `/absolute/path/to/installed/taskcontext` with the directory containing your installed `SKILL.md`. Invoke the client by its quoted absolute path from any working directory.
 
-The portable client requires uv and Python 3.11 or later, `TASKCONTEXT_URL`, and `TASKCONTEXT_USER_EMAIL`, supplied outside source control. For password authentication, also supply `TASKCONTEXT_USER_PASSWORD`:
+The portable client requires uv and Python 3.11 or later. Supply the server URL and account email as login options. For password authentication, also supply `TASKCONTEXT_USER_PASSWORD`:
 
 ```sh
 export TASKCONTEXT_URL=https://tasks.pocketcontext.com
@@ -73,7 +76,7 @@ export TASKCONTEXT_USER_PASSWORD=... # from your secret store
 
 For Google authentication, omit the password and follow the Google Workspace setup below. `login --google` prints the sign-in URL and opens the default browser unless `--no-browser` is given, an SSH session is detected or no browser is available.
 
-Use HTTPS except on localhost. The client runs its pinned Python package through uv, keeps its login session private with mode 0600 in `$XDG_STATE_HOME/taskcontext/` (default `~/.local/state/taskcontext/`, or `TASKCONTEXT_SESSION_DIR` when set) so clearing `~/.cache` does not sign you out, and never prints credentials. A session left in `~/.cache/taskcontext/` by an older client is moved there on first use. `logout` removes both. `check` compares the live SQL schema with the bundled snapshot. See [schema](skills/taskcontext/references/schema.md), [workflows](skills/taskcontext/references/workflows.md), and [examples](skills/taskcontext/references/examples.md).
+Use HTTPS except on localhost. The client runs its pinned Python package through uv, keeps its login session private with mode 0600 in `$XDG_STATE_HOME/taskcontext/` (default `~/.local/state/taskcontext/`, or `TASKCONTEXT_SESSION_DIR` when set) so clearing `~/.cache` does not sign you out, and never prints credentials. `logout` removes the selected token but retains default settings. `check` compares the live SQL schema with the bundled snapshot. See [schema](skills/taskcontext/references/schema.md), [workflows](skills/taskcontext/references/workflows.md), and [examples](skills/taskcontext/references/examples.md).
 
 ## Google Workspace authentication
 
